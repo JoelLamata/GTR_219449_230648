@@ -10,6 +10,7 @@
 #include "scene.h"
 #include "extra/hdre.h"
 
+#include <algorithm>    // std::sort
 
 using namespace GTR;
 
@@ -23,6 +24,7 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 	checkGLErrors();
 
 	//render entities
+	std::vector<RenderCall> render_calls;
 	for (int i = 0; i < scene->entities.size(); ++i)
 	{
 		BaseEntity* ent = scene->entities[i];
@@ -33,9 +35,24 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 		if (ent->entity_type == PREFAB)
 		{
 			PrefabEntity* pent = (GTR::PrefabEntity*)ent;
-			if(pent->prefab)
-				renderPrefab(ent->model, pent->prefab, camera);
+			RenderCall rc;
+			if (pent->prefab) {
+				if (ent->name.rfind("car") == 0) {
+					Vector3 nodePos = ent->model.getTranslation();
+					rc.model = ent->model;
+					rc.prefab = pent;
+					rc.distance_to_camera = camera->eye.distance(nodePos);
+					render_calls.push_back(rc);
+				}
+				else {
+					renderPrefab(ent->model, pent->prefab, camera);
+				}
+			}
 		}
+	}
+	std::sort(render_calls.begin(), render_calls.end(), std::greater<RenderCall>());
+	for (std::vector<RenderCall>::iterator it = render_calls.begin(); it != render_calls.end(); ++it) {
+		renderPrefab(it->model, it->prefab->prefab, camera);
 	}
 }
 

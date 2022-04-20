@@ -34,4 +34,16 @@ namespace GTR {
 
 	Texture* CubemapFromHDRE(const char* filename);
 
+	class RenderCall {
+	public:
+		PrefabEntity* prefab;
+		Matrix44 model;
+
+		float distance_to_camera = 0;
+
+		bool operator > (const RenderCall& str) const
+		{
+			return (distance_to_camera > str.distance_to_camera);
+		}
+	};
 };
