@@ -127,6 +127,8 @@ GTR::BaseEntity* GTR::Scene::createEntity(std::string type)
 {
 	if (type == "PREFAB")
 		return new GTR::PrefabEntity();
+	else if (type == "LIGHT")
+		return new GTR::LightEntity();
     return NULL;
 }
 
@@ -172,3 +174,36 @@ void GTR::PrefabEntity::renderInMenu()
 #endif
 }
 
+GTR::LightEntity::LightEntity()
+{
+	entity_type = eEntityType::LIGHT;
+	color.set(1, 1, 1);
+	intensity = 1;
+}
+
+void GTR::LightEntity::renderInMenu()
+{
+	std::string type_str;
+	switch (light_type) {
+	case eLightType::POINT: type_str = "POINT"; break;
+	case eLightType::SPOT: type_str = "SPOT"; break;
+	case eLightType::DIRECTIONAL: type_str = "DIRECTIONAL"; break;
+	}
+	ImGui::Text("LightType: %s", type_str.c_str());
+	ImGui::ColorEdit3("Color", color.v); 
+	ImGui::DragFloat("intesity", &intensity);
+
+}
+
+void GTR::LightEntity::configure(cJSON* json)
+{
+	color = readJSONVector3(json, "color", color);
+	intensity = readJSONNumber(json, "intensity", intensity);
+	std::string str = readJSONString(json, "light_type", "");
+	if (str == "POINT")
+		light_type = eLightType::POINT;
+	else if (str == "SPOT")
+		light_type = eLightType::SPOT;
+	else if (str == "DIRECTIONAL")
+		light_type = eLightType::DIRECTIONAL;
+}

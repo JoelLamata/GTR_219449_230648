@@ -23,6 +23,12 @@ namespace GTR {
 		DECALL = 5
 	};
 
+	enum eLightType {
+		POINT,
+		SPOT,
+		DIRECTIONAL
+	};
+
 	class Scene;
 	class Prefab;
 
@@ -49,6 +55,23 @@ namespace GTR {
 		Prefab* prefab;
 		
 		PrefabEntity();
+		virtual void renderInMenu();
+		virtual void configure(cJSON* json);
+	};
+
+	//represents one light in the scene
+	class LightEntity : public GTR::BaseEntity
+	{
+	public:
+		Vector3 color;
+		float intensity;
+		eLightType light_type;
+		//float max_distance;
+		//float cone_angle;
+		//float cone_exp;
+		//float area_size;
+
+		LightEntity();
 		virtual void renderInMenu();
 		virtual void configure(cJSON* json);
 	};

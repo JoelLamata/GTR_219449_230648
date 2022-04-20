@@ -16,6 +16,9 @@ namespace GTR {
 
 	public:
 
+		std::vector<GTR::LightEntity*> lights;
+		std::vector<GTR::RenderCall> render_calls;
+
 		//add here your functions
 		//...
 

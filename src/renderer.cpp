@@ -24,7 +24,8 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 	checkGLErrors();
 
 	//render entities
-	std::vector<RenderCall> render_calls;
+	lights.clear();
+	render_calls.clear();
 	for (int i = 0; i < scene->entities.size(); ++i)
 	{
 		BaseEntity* ent = scene->entities[i];
@@ -49,9 +50,15 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 				}
 			}
 		}
+		//is a light!
+		else if (ent->entity_type == LIGHT)
+		{
+			LightEntity* light = (GTR::LightEntity*)ent;
+			lights.push_back(light);
+		}
 	}
 	std::sort(render_calls.begin(), render_calls.end(), std::greater<RenderCall>());
-	for (std::vector<RenderCall>::iterator it = render_calls.begin(); it != render_calls.end(); ++it) {
+	for (std::vector<GTR::RenderCall>::iterator it = render_calls.begin(); it != render_calls.end(); ++it) {
 		renderPrefab(it->model, it->prefab->prefab, camera);
 	}
 }
