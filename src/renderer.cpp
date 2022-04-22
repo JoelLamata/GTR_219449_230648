@@ -14,6 +14,30 @@
 
 using namespace GTR;
 
+bool GTR::Renderer::checkTransparency(GTR::Node* node)
+{
+	if (!node->material) {
+		for (int i = 0; i < node->children.size(); ++i) {
+			if (checkTransparency(node->children[i])) {
+				return true;
+			}
+		}
+	}
+	else {
+		if (node->material->alpha_mode != eAlphaMode::NO_ALPHA) {
+			return true;
+		}
+		else {
+			for (int i = 0; i < node->children.size(); ++i) {
+				if (checkTransparency(node->children[i])) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 {
 	//set the clear color (the background color)
@@ -26,6 +50,21 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 	//render entities
 	lights.clear();
 	render_calls.clear();
+
+	//first store the lights, they are needed before rendering anything
+	for (int i = 0; i < scene->entities.size(); ++i) {
+		BaseEntity* ent = scene->entities[i];
+		if (!ent->visible)
+			continue;
+		//is a light!
+		if (ent->entity_type == LIGHT)
+		{
+			LightEntity* light = (GTR::LightEntity*)ent;
+			lights.push_back(light);
+		}
+	}
+
+	//prefabs
 	for (int i = 0; i < scene->entities.size(); ++i)
 	{
 		BaseEntity* ent = scene->entities[i];
@@ -36,25 +75,21 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 		if (ent->entity_type == PREFAB)
 		{
 			PrefabEntity* pent = (GTR::PrefabEntity*)ent;
-			RenderCall rc;
 			if (pent->prefab) {
-				if (ent->name.rfind("car") == 0) {
+				std::string name = ent->name;
+				bool transparencia = checkTransparency(&pent->prefab->root);
+				if (transparencia) {
+					RenderCall rc;
 					Vector3 nodePos = ent->model.getTranslation();
 					rc.model = ent->model;
 					rc.prefab = pent;
 					rc.distance_to_camera = camera->eye.distance(nodePos);
 					render_calls.push_back(rc);
 				}
-				else {
+				else{
 					renderPrefab(ent->model, pent->prefab, camera);
 				}
 			}
-		}
-		//is a light!
-		else if (ent->entity_type == LIGHT)
-		{
-			LightEntity* light = (GTR::LightEntity*)ent;
-			lights.push_back(light);
 		}
 	}
 	std::sort(render_calls.begin(), render_calls.end(), std::greater<RenderCall>());
@@ -111,6 +146,11 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 	//define locals to simplify coding
 	Shader* shader = NULL;
 	Texture* texture = NULL;
+	GTR::Scene* scene = GTR::Scene::instance;
+
+	int num_lights = lights.size();
+	if (!num_lights)
+		return;
 
 	texture = material->color_texture.texture;
 	//texture = material->emissive_texture;
@@ -137,7 +177,8 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
     assert(glGetError() == GL_NO_ERROR);
 
 	//chose a shader
-	shader = Shader::Get("texture");
+	//shader = Shader::Get("texture");
+	shader = Shader::Get("singlelight");
 
     assert(glGetError() == GL_NO_ERROR);
 
@@ -159,6 +200,12 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 
 	//this is used to say which is the alpha threshold to what we should not paint a pixel on the screen (to cut polygons according to texture alpha)
 	shader->setUniform("u_alpha_cutoff", material->alpha_mode == GTR::eAlphaMode::MASK ? material->alpha_cutoff : 0);
+
+	//Light
+	shader->setUniform("u_ambient_light", scene->ambient_light);
+	LightEntity* light = lights[1];
+	shader->setUniform("u_light_color", light->color * light->intensity);
+	shader->setUniform("u_light_position", light->model * Vector3());
 
 	//do the draw call that renders the mesh into the screen
 	mesh->render(GL_TRIANGLES);

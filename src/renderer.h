@@ -9,6 +9,19 @@ namespace GTR {
 	class Prefab;
 	class Material;
 	
+	class RenderCall {
+	public:
+		PrefabEntity* prefab;
+		Matrix44 model;
+
+		float distance_to_camera = 0;
+
+		bool operator > (const RenderCall& str) const
+		{
+			return (distance_to_camera > str.distance_to_camera);
+		}
+	};
+
 	// This class is in charge of rendering anything in our system.
 	// Separating the render from anything else makes the code cleaner
 	class Renderer
@@ -17,10 +30,10 @@ namespace GTR {
 	public:
 
 		std::vector<GTR::LightEntity*> lights;
-		std::vector<GTR::RenderCall> render_calls;
+		std::vector<RenderCall> render_calls;
 
 		//add here your functions
-		//...
+		bool checkTransparency(GTR::Node* node);
 
 		//renders several elements of the scene
 		void renderScene(GTR::Scene* scene, Camera* camera);
@@ -36,17 +49,4 @@ namespace GTR {
 	};
 
 	Texture* CubemapFromHDRE(const char* filename);
-
-	class RenderCall {
-	public:
-		PrefabEntity* prefab;
-		Matrix44 model;
-
-		float distance_to_camera = 0;
-
-		bool operator > (const RenderCall& str) const
-		{
-			return (distance_to_camera > str.distance_to_camera);
-		}
-	};
 };
