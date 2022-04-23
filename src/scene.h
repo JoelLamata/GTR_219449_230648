@@ -66,7 +66,7 @@ namespace GTR {
 		Vector3 color;
 		float intensity;
 		eLightType light_type;
-		//float max_distance;
+		float max_distance;
 		//float cone_angle;
 		//float cone_exp;
 		//float area_size;

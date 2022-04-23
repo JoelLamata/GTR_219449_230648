@@ -148,10 +148,6 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 	Texture* texture = NULL;
 	GTR::Scene* scene = GTR::Scene::instance;
 
-	int num_lights = lights.size();
-	if (!num_lights)
-		return;
-
 	texture = material->color_texture.texture;
 	//texture = material->emissive_texture;
 	//texture = material->metallic_roughness_texture;
@@ -162,12 +158,14 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 
 	//select the blending
 	if (material->alpha_mode == GTR::eAlphaMode::BLEND)
-	{
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
-	else
-		glDisable(GL_BLEND);
+		return;
+	//if (material->alpha_mode == GTR::eAlphaMode::BLEND)
+	//{
+	//	glEnable(GL_BLEND);
+	//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//}
+	//else
+	//	glDisable(GL_BLEND);
 
 	//select if render both sides of the triangles
 	if(material->two_sided)
@@ -203,18 +201,40 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 
 	//Light
 	shader->setUniform("u_ambient_light", scene->ambient_light);
-	LightEntity* light = lights[1];
-	shader->setUniform("u_light_color", light->color * light->intensity);
-	shader->setUniform("u_light_position", light->model * Vector3());
+	glDepthFunc(GL_LEQUAL);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-	//do the draw call that renders the mesh into the screen
-	mesh->render(GL_TRIANGLES);
+	int num_lights = lights.size();
+
+	if (!num_lights) {
+		shader->setUniform("u_light_color", Vector3());
+		mesh->render(GL_TRIANGLES);
+	}
+	else {
+		for (int i = 0; i < num_lights; ++i) {
+			if (i == 0)
+				glDisable(GL_BLEND);
+			else
+				glEnable(GL_BLEND);
+			LightEntity* light = lights[i];
+			shader->setUniform("u_light_color", light->color * light->intensity);
+			shader->setUniform("u_light_position", light->model * Vector3());
+			shader->setUniform("u_light_max_distance", light->max_distance);
+
+			//do the draw call that renders the mesh into the screen
+			mesh->render(GL_TRIANGLES);
+
+			shader->setUniform("u_ambient_light", Vector3());
+		}
+	}
+	
 
 	//disable shader
 	shader->disable();
 
 	//set the render state as it was before to avoid problems with future renders
 	glDisable(GL_BLEND);
+	glDepthFunc(GL_LESS);
 }
 
 

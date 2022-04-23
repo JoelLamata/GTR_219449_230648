@@ -124,6 +124,7 @@ uniform float u_alpha_cutoff;
 uniform vec3 u_ambient_light;
 uniform vec3 u_light_color;
 uniform vec3 u_light_position;
+uniform float u_light_max_distance;
 
 out vec4 FragColor;
 
@@ -141,9 +142,17 @@ void main()
 
 	vec3 light = vec3(u_ambient_light);
 
-	vec3 L = normalize(u_light_position - v_world_position);
+	vec3 L = u_light_position - v_world_position;
+	float light_dist = length(L);
+	L /= light_dist;
+
+	float att_factor = u_light_max_distance - light_dist;
+
+	att_factor /= u_light_max_distance;
+	att_factor = max(att_factor, 0.0);
+	
 	float NdotL = clamp( dot(N,L), 0.0, 1.0 );
-	light += NdotL * u_light_color;
+	light += att_factor * NdotL * u_light_color;
 	
 	color.xyz *= light;
 

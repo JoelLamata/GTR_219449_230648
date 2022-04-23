@@ -179,10 +179,12 @@ GTR::LightEntity::LightEntity()
 	entity_type = eEntityType::LIGHT;
 	color.set(1, 1, 1);
 	intensity = 1;
+	max_distance = 100;
 }
 
 void GTR::LightEntity::renderInMenu()
 {
+	GTR::BaseEntity::renderInMenu();
 	std::string type_str;
 	switch (light_type) {
 	case eLightType::POINT: type_str = "POINT"; break;
@@ -191,7 +193,8 @@ void GTR::LightEntity::renderInMenu()
 	}
 	ImGui::Text("LightType: %s", type_str.c_str());
 	ImGui::ColorEdit3("Color", color.v); 
-	ImGui::DragFloat("intesity", &intensity);
+	ImGui::DragFloat("intesity", &intensity, 0.1);
+	ImGui::DragFloat("max_distance", &max_distance, 1);
 
 }
 
@@ -199,6 +202,7 @@ void GTR::LightEntity::configure(cJSON* json)
 {
 	color = readJSONVector3(json, "color", color);
 	intensity = readJSONNumber(json, "intensity", intensity);
+	max_distance = readJSONNumber(json, "max_dist", max_distance);
 	std::string str = readJSONString(json, "light_type", "");
 	if (str == "POINT")
 		light_type = eLightType::POINT;
