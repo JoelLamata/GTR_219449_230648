@@ -158,14 +158,14 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 
 	//select the blending
 	if (material->alpha_mode == GTR::eAlphaMode::BLEND)
-		return;
-	//if (material->alpha_mode == GTR::eAlphaMode::BLEND)
-	//{
-	//	glEnable(GL_BLEND);
-	//	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//}
-	//else
-	//	glDisable(GL_BLEND);
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+	else {
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glDisable(GL_BLEND);
+	}
 
 	//select if render both sides of the triangles
 	if(material->two_sided)
@@ -175,8 +175,8 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
     assert(glGetError() == GL_NO_ERROR);
 
 	//chose a shader
-	//shader = Shader::Get("texture");
 	shader = Shader::Get("singlelight");
+	//shader = Shader::Get("multilight");
 
     assert(glGetError() == GL_NO_ERROR);
 
@@ -206,16 +206,29 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 
 	int num_lights = lights.size();
 
+	//Multipass
 	if (!num_lights) {
 		shader->setUniform("u_light_color", Vector3());
 		mesh->render(GL_TRIANGLES);
 	}
-	else {
+	else if (scene->multi_pass) {
 		for (int i = 0; i < num_lights; ++i) {
-			if (i == 0)
+			if (i == 0) {
 				glDisable(GL_BLEND);
-			else
+				if (material->alpha_mode == GTR::eAlphaMode::BLEND)
+				{
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				}
+				else {
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+					glDisable(GL_BLEND);
+				}
+
+			}
+			else {
 				glEnable(GL_BLEND);
+			}
 			LightEntity* light = lights[i];
 			shader->setUniform("u_light_color", light->color * light->intensity);
 			shader->setUniform("u_light_position", light->model * Vector3());
@@ -227,8 +240,30 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 			shader->setUniform("u_ambient_light", Vector3());
 		}
 	}
-	
+	//Singlepass
+	else {
+		const int MAX_LIGHTS = 5;
+		Vector3 light_position[MAX_LIGHTS];
+		Vector3 light_color[MAX_LIGHTS];
 
+		for (int i = 0; i < MAX_LIGHTS; ++i) {
+			if (i < num_lights) {
+				LightEntity* light = lights[i];
+				light_position[i] = light->model * Vector3();
+				light_color[i] = light->color * light->intensity;
+			}
+		}
+		shader->setUniform3Array("u_light_color", (float*)&light_color, 3);
+		shader->setUniform3Array("u_light_position", (float*)&light_position, 3);
+		shader->setUniform("u_light_max_distance", lights[0]->max_distance); //CAMBIAR??
+		shader->setUniform("u_num_lights", num_lights);
+
+		//do the draw call that renders the mesh into the screen
+		mesh->render(GL_TRIANGLES);
+
+		shader->setUniform("u_ambient_light", Vector3());
+	}
+	
 	//disable shader
 	shader->disable();
 

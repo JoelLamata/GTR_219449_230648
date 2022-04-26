@@ -9,7 +9,7 @@ GTR::Scene* GTR::Scene::instance = NULL;
 GTR::Scene::Scene()
 {
 	instance = this;
-	
+	multi_pass = false;
 }
 
 void GTR::Scene::clear()
@@ -195,7 +195,6 @@ void GTR::LightEntity::renderInMenu()
 	ImGui::ColorEdit3("Color", color.v); 
 	ImGui::DragFloat("intesity", &intensity, 0.1);
 	ImGui::DragFloat("max_distance", &max_distance, 1);
-
 }
 
 void GTR::LightEntity::configure(cJSON* json)

@@ -11,9 +11,6 @@ class cJSON;
 
 //our namespace
 namespace GTR {
-
-
-
 	enum eEntityType {
 		NONE = 0,
 		PREFAB = 1,
@@ -85,6 +82,8 @@ namespace GTR {
 		Vector3 background_color;
 		Vector3 ambient_light;
 		Camera main_camera;
+
+		bool multi_pass;
 
 		Scene();
 
