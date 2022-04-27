@@ -21,9 +21,9 @@ namespace GTR {
 	};
 
 	enum eLightType {
-		POINT,
-		SPOT,
-		DIRECTIONAL
+		POINT = 0,
+		SPOT = 1,
+		DIRECTIONAL = 2
 	};
 
 	class Scene;
@@ -64,9 +64,10 @@ namespace GTR {
 		float intensity;
 		eLightType light_type;
 		float max_distance;
-		//float cone_angle;
-		//float cone_exp;
-		//float area_size;
+		float cone_angle;
+		float cone_exp;
+		float area_size;
+		Vector3 target;
 
 		LightEntity();
 		virtual void renderInMenu();

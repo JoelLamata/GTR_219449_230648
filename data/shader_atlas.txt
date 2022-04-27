@@ -126,8 +126,9 @@ const int MAX_LIGHTS = 5;
 uniform vec3 u_ambient_light;
 uniform vec3 u_light_color[MAX_LIGHTS];
 uniform vec3 u_light_position[MAX_LIGHTS];
-uniform float u_light_max_distance;
+uniform float u_light_max_distance[MAX_LIGHTS];
 uniform int u_num_lights;
+uniform int u_light_type[MAX_LIGHTS];
 
 out vec4 FragColor;
 
@@ -150,9 +151,9 @@ void main()
 			float light_dist = length(L);
 			L /= light_dist;
 
-			float att_factor = u_light_max_distance - light_dist;
+			float att_factor = u_light_max_distance[i] - light_dist;
 
-			att_factor /= u_light_max_distance;
+			att_factor /= u_light_max_distance[i];
 			att_factor = max(att_factor, 0.0);
 
 			att_factor *= pow(att_factor, 2.0);
@@ -185,6 +186,8 @@ uniform vec3 u_ambient_light;
 uniform vec3 u_light_color;
 uniform vec3 u_light_position;
 uniform float u_light_max_distance;
+uniform int u_light_type;
+uniform vec3 u_light_vector;
 
 out vec4 FragColor;
 
@@ -201,15 +204,24 @@ void main()
 
 	vec3 light = vec3(u_ambient_light);
 
-	vec3 L = u_light_position - v_world_position;
+	vec3 L;
+
+	if(u_light_type == 0){ //POINT
+		L = u_light_position - v_world_position;
+	}
+	else if (u_light_type == 1){ //SPOT
+		L = u_light_position - v_world_position;
+	}
+	else { //DIRECTIONAL
+		L = normalize( u_light_vector );
+	}
+
 	float light_dist = length(L);
 	L /= light_dist;
-
 	float att_factor = u_light_max_distance - light_dist;
-
 	att_factor /= u_light_max_distance;
-	att_factor = max(att_factor, 0.0);
 
+	att_factor = max(att_factor, 0.0);
 	att_factor *= pow(att_factor, 2.0);
 	
 	float NdotL = clamp( dot(N,L), 0.0, 1.0 );
