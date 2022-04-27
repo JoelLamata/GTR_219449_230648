@@ -175,8 +175,8 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
     assert(glGetError() == GL_NO_ERROR);
 
 	//chose a shader
-	shader = Shader::Get("singlelight");
-	//shader = Shader::Get("multilight");
+	if (scene->multi_pass) shader = Shader::Get("multilight");
+	else shader = Shader::Get("singlelight");
 
     assert(glGetError() == GL_NO_ERROR);
 
