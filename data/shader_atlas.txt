@@ -129,6 +129,7 @@ uniform vec3 u_light_position[MAX_LIGHTS];
 uniform float u_light_max_distance[MAX_LIGHTS];
 uniform int u_num_lights;
 uniform int u_light_type[MAX_LIGHTS];
+uniform vec3 u_light_vector[MAX_LIGHTS];
 
 out vec4 FragColor;
 
@@ -144,10 +145,18 @@ void main()
 		discard;
 
 	vec3 light = vec3(u_ambient_light);
-
+	vec3 L;
 	for(int i = 0; i < MAX_LIGHTS; ++i){
 		if(i < u_num_lights){
-			vec3 L = u_light_position[i] - v_world_position;
+			if(u_light_type[i] == 0){ //POINT
+				L = u_light_position[i] - v_world_position;
+			}
+			else if (u_light_type[i] == 1){ //SPOT
+				L = u_light_position[i] - v_world_position;
+			}
+			else { //DIRECTIONAL
+				L = normalize( u_light_vector[i] );
+			}
 			float light_dist = length(L);
 			L /= light_dist;
 
@@ -188,6 +197,9 @@ uniform vec3 u_light_position;
 uniform float u_light_max_distance;
 uniform int u_light_type;
 uniform vec3 u_light_vector;
+uniform vec3 u_light_direction;
+uniform float u_light_cosine_cutoff;
+uniform float u_light_exp;
 
 out vec4 FragColor;
 
@@ -205,12 +217,20 @@ void main()
 	vec3 light = vec3(u_ambient_light);
 
 	vec3 L;
-
+	float spot_factor = 1.0;
 	if(u_light_type == 0){ //POINT
 		L = u_light_position - v_world_position;
 	}
 	else if (u_light_type == 1){ //SPOT
 		L = u_light_position - v_world_position;
+		vec3 D = -normalize(u_light_direction);
+		float spot_cosine = dot(D, L);
+		if(spot_cosine >= u_light_cosine_cutoff){
+			spot_factor = pow(spot_cosine, u_light_exp);
+		}
+		else {
+			spot_factor = 0.0;
+		}
 	}
 	else { //DIRECTIONAL
 		L = normalize( u_light_vector );

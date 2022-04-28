@@ -234,8 +234,17 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 			shader->setUniform("u_light_position", light->model * Vector3());
 			shader->setUniform("u_light_max_distance", light->max_distance);
 			shader->setUniform("u_light_type", light->light_type);
+
 			Vector3 u_light_vector = (light->model * Vector3()) - light->target;
 			shader->setUniform("u_light_vector", u_light_vector);
+
+			Vector3 u_light_direction = light->model.rotateVector(Vector3(0, 0, -1));
+			shader->setUniform("u_light_direction", u_light_direction);
+
+			float u_light_cosine_cutoff = cos(light->cone_angle * DEG2RAD);
+			shader->setUniform("u_light_cosine_cutoff", u_light_cosine_cutoff);
+
+			shader->setUniform("u_light_exp", light->cone_exp);
 
 			//do the draw call that renders the mesh into the screen
 			mesh->render(GL_TRIANGLES);
@@ -250,6 +259,7 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 		Vector3 light_color[MAX_LIGHTS];
 		int light_type[MAX_LIGHTS];
 		float light_max_distance[MAX_LIGHTS];
+		Vector3 light_vector[MAX_LIGHTS];
 
 		for (int i = 0; i < MAX_LIGHTS; ++i) {
 			if (i < num_lights) {
@@ -258,14 +268,16 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 				light_color[i] = light->color * light->intensity;
 				light_type[i] = light->light_type;
 				light_max_distance[i] = light->max_distance;
+				light_vector[i] = (light->model * Vector3()) - light->target;
 			}
 		}
-		shader->setUniform3Array("u_light_color", (float*)&light_color, 3);
-		shader->setUniform3Array("u_light_position", (float*)&light_position, 3);
+		shader->setUniform3Array("u_light_color", (float*)&light_color, num_lights);
+		shader->setUniform3Array("u_light_position", (float*)&light_position, num_lights);
+		shader->setUniform3Array("u_light_vector", (float*)&light_vector, num_lights);
 		shader->setUniform("u_num_lights", num_lights);
 
-		shader->setUniform("u_light_max_distance", light_max_distance[0]); //CAMBIAR!!
-		shader->setUniform("u_light_type", light_type[0]); //CAMBIAR!!
+		shader->setUniform1Array("u_light_max_distance", (float*)&light_max_distance, num_lights);
+		shader->setUniform1Array("u_light_type", (int*)&light_type, num_lights);
 
 		//do the draw call that renders the mesh into the screen
 		mesh->render(GL_TRIANGLES);

@@ -68,6 +68,7 @@ namespace GTR {
 		float cone_exp;
 		float area_size;
 		Vector3 target;
+		bool cast_shadows;
 
 		LightEntity();
 		virtual void renderInMenu();

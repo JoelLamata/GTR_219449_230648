@@ -206,10 +206,11 @@ void GTR::LightEntity::configure(cJSON* json)
 	color = readJSONVector3(json, "color", color);
 	intensity = readJSONNumber(json, "intensity", intensity);
 	max_distance = readJSONNumber(json, "max_dist", max_distance);
-	cone_angle = readJSONNumber(json, "cone_angle", cone_angle);;
-	cone_exp = readJSONNumber(json, "cone_exp", cone_exp);;
-	area_size = readJSONNumber(json, "area_size", area_size);;
+	cone_angle = readJSONNumber(json, "cone_angle", cone_angle);
+	cone_exp = readJSONNumber(json, "cone_exp", cone_exp);
+	area_size = readJSONNumber(json, "area_size", area_size);
 	target = readJSONVector3(json, "target", target);
+	cast_shadows = readJSONBool(json, "cast_shadows", false);
 	std::string str = readJSONString(json, "light_type", "");
 	if (str == "POINT")
 		light_type = eLightType::POINT;
