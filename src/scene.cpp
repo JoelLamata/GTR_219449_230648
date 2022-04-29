@@ -184,6 +184,7 @@ GTR::LightEntity::LightEntity()
 	cone_exp = 0;
 	area_size = 0;
 	target.set(0, 0, 0);
+	shadow_bias = 0;
 }
 
 void GTR::LightEntity::renderInMenu()
@@ -199,6 +200,11 @@ void GTR::LightEntity::renderInMenu()
 	ImGui::ColorEdit3("Color", color.v); 
 	ImGui::DragFloat("intesity", &intensity, 0.1);
 	ImGui::DragFloat("max_distance", &max_distance, 1);
+	ImGui::DragFloat("cone_angle", &cone_angle, 0.1);
+	ImGui::DragFloat("cone_exp", &cone_exp, 0.1);
+	ImGui::DragFloat("shadow_bias", &shadow_bias, 0.001);
+	ImGui::Checkbox("cast_shadows", &cast_shadows);
+
 }
 
 void GTR::LightEntity::configure(cJSON* json)
@@ -208,6 +214,7 @@ void GTR::LightEntity::configure(cJSON* json)
 	max_distance = readJSONNumber(json, "max_dist", max_distance);
 	cone_angle = readJSONNumber(json, "cone_angle", cone_angle);
 	cone_exp = readJSONNumber(json, "cone_exp", cone_exp);
+	shadow_bias = readJSONNumber(json, "shadow_bias", shadow_bias);
 	area_size = readJSONNumber(json, "area_size", area_size);
 	target = readJSONVector3(json, "target", target);
 	cast_shadows = readJSONBool(json, "cast_shadows", false);

@@ -69,6 +69,7 @@ namespace GTR {
 		float area_size;
 		Vector3 target;
 		bool cast_shadows;
+		float shadow_bias;
 
 		LightEntity();
 		virtual void renderInMenu();
