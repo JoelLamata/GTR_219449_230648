@@ -11,14 +11,25 @@ namespace GTR {
 	
 	class RenderCall {
 	public:
-		PrefabEntity* prefab;
+		Material* material;
+		Mesh* mesh;
+		//Prefab* prefab;
 		Matrix44 model;
 
 		float distance_to_camera = 0;
 
 		bool operator > (const RenderCall& str) const
 		{
-			return (distance_to_camera > str.distance_to_camera);
+			if (material->alpha_mode == eAlphaMode::BLEND)
+				if (str.material->alpha_mode == eAlphaMode::BLEND)
+					return (distance_to_camera > str.distance_to_camera);
+				else
+					return false;
+			else
+				if (str.material->alpha_mode == eAlphaMode::BLEND)
+					return true;
+				else
+					return (distance_to_camera > str.distance_to_camera);
 		}
 	};
 
@@ -33,7 +44,6 @@ namespace GTR {
 		std::vector<RenderCall> render_calls;
 
 		//add here your functions
-		bool checkTransparency(GTR::Node* node);
 
 		//renders several elements of the scene
 		void renderScene(GTR::Scene* scene, Camera* camera);
@@ -46,6 +56,9 @@ namespace GTR {
 
 		//to render one mesh given its material and transformation matrix
 		void renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);
+	
+		void renderFlatMesh(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);
+		void generateShadowmap(LightEntity* light);
 	};
 
 	Texture* CubemapFromHDRE(const char* filename);

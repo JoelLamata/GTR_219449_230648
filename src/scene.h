@@ -6,7 +6,9 @@
 #include <string>
 
 //forward declaration
-class cJSON; 
+class cJSON;
+class FBO;
+class Texture;
 
 
 //our namespace
@@ -70,6 +72,9 @@ namespace GTR {
 		Vector3 target;
 		bool cast_shadows;
 		float shadow_bias;
+
+		FBO* fbo;
+		Texture* shadowmap;
 
 		LightEntity();
 		virtual void renderInMenu();
