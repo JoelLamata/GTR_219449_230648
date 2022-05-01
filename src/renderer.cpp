@@ -26,10 +26,10 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	checkGLErrors();
 
-	//render entities
 	lights.clear();
 	render_calls.clear();
 
+	//render entities
 	//first store the lights, they are needed before rendering anything
 	for (int i = 0; i < scene->entities.size(); ++i) {
 		BaseEntity* ent = scene->entities[i];
@@ -75,9 +75,9 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 			renderMeshWithMaterial(rc->model, rc->mesh, rc->material, camera);
 	}
 	
-	glViewport(Application::instance->window_width - 256, 0, 256, 256);
-	showShadowmap(lights[0]);
-	glViewport( 0, 0, Application::instance->window_width, Application::instance->window_height);
+	//glViewport(Application::instance->window_width - 256, 0, 256, 256);
+	//showShadowmap(lights[0]);
+	//glViewport( 0, 0, Application::instance->window_width, Application::instance->window_height);
 
 }
 
@@ -86,7 +86,7 @@ void GTR::Renderer::showShadowmap(LightEntity* light){
 	Shader* shader = Shader::getDefaultShader("depth");
 	shader->enable();
 	shader->setUniform("u_camera_nearfar", Vector2(light->light_camera->near_plane, light->light_camera->far_plane));
-	light->shadowmap->toViewport();
+	light->shadowmap->toViewport(shader);
 }
 
 //renders all the prefab
@@ -154,8 +154,7 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 		texture = Texture::getWhiteTexture(); //a 1x1 white texture
 
 	//select the blending
-	if (material->alpha_mode == GTR::eAlphaMode::BLEND)
-	{
+	if (material->alpha_mode == GTR::eAlphaMode::BLEND)	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
@@ -218,12 +217,12 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				}
 				else {
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 					glDisable(GL_BLEND);
 				}
-
 			}
 			else {
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE); //MIRAR
+
 				glEnable(GL_BLEND);
 			}
 			LightEntity* light = lights[i];
@@ -238,16 +237,14 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 			shader->setUniform("u_light_cosine_cutoff", (float)cos(light->cone_angle * DEG2RAD));
 
 			if (light->shadowmap) {
-				shader->setUniform("u_light_cast_shadows", 1);
+				shader->setUniform("u_light_cast_shadows", light->cast_shadows);
 				shader->setUniform("u_light_shadowmap", light->shadowmap, 8);
 				shader->setUniform("u_shadow_viewproj", light->light_camera->viewprojection_matrix);
 				shader->setUniform("u_light_shadowbias", light->shadow_bias);
 			}
 			else {
 				shader->setUniform("u_light_cast_shadows", 0);
-
 			}
-
 
 			//do the draw call that renders the mesh into the screen
 			mesh->render(GL_TRIANGLES);
@@ -266,6 +263,13 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 		float light_exp[MAX_LIGHTS];
 		float light_cosine_cutoff[MAX_LIGHTS];
 
+		//int light_cast_shadows[MAX_LIGHTS];
+		//Texture* light_shadowmap[MAX_LIGHTS];
+		//Matrix44 shadow_viewproj[MAX_LIGHTS];
+		//float light_shadowbias[MAX_LIGHTS];
+
+		Matrix44 empty;
+
 		for (int i = 0; i < MAX_LIGHTS; ++i) {
 			if (i < num_lights) {
 				LightEntity* light = lights[i];
@@ -276,6 +280,19 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 				light_direction[i] = light->model.rotateVector(Vector3(0, 0, -1));
 				light_exp[i] = light->cone_exp;
 				light_cosine_cutoff[i] = cos(light->cone_angle * DEG2RAD);
+
+				
+				//light_cast_shadows[i] = (int)light->cast_shadows;
+				//if (light->cast_shadows && light->light_camera) {
+				//	light_shadowmap[i] = light->shadowmap;
+				//	shadow_viewproj[i] = light->light_camera->viewprojection_matrix;
+				//	light_shadowbias[i] = light->shadow_bias;
+				//}
+				//else {
+				//	light_shadowmap[i] = NULL;
+				//	shadow_viewproj[i] = empty;//AQUI
+				//	light_shadowbias[i] = NULL;
+				//}
 			}
 		}
 		shader->setUniform3Array("u_light_color", (float*)&light_color, num_lights);
@@ -285,9 +302,13 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 
 		shader->setUniform1Array("u_light_max_distance", (float*)&light_max_distance, num_lights);
 		shader->setUniform1Array("u_light_type", (int*)&light_type, num_lights);
-
 		shader->setUniform1Array("u_light_exp", (float*)&light_exp, num_lights);
 		shader->setUniform1Array("u_light_cosine_cutoff", (float*)&light_cosine_cutoff, num_lights);
+
+		//shader->setUniform1Array("u_light_cast_shadows", (int*)&light_cast_shadows, num_lights);
+		//shader->setUniform1Array("u_light_shadowmap", (float*)&light_shadowmap, num_lights);
+		//shader->setUniform1Array("u_shadow_viewproj", (float*)&shadow_viewproj, num_lights);
+		//shader->setUniform1Array("u_light_shadowbias", (float*)&light_shadowbias, num_lights);
 		//do the draw call that renders the mesh into the screen
 		mesh->render(GL_TRIANGLES);
 
@@ -410,7 +431,7 @@ void GTR::Renderer::generateShadowmap(LightEntity* light){
 	Camera* light_camera = light->light_camera;
 	Camera* view_camera = Camera::current;
 	light_camera->setPerspective(light->cone_angle, 1.0, 0.1, light->max_distance);
-	light_camera->lookAt(light->model.getTranslation(), light->model * Vector3(0, 0, -1), light->model.rotateVector(Vector3(0, 0, -1)));
+	light_camera->lookAt(light->model.getTranslation(), light->model * Vector3(0, 0, -1), light->model.rotateVector(Vector3(0, 1, 0)));
 	light_camera->enable();
 
 	glClear(GL_DEPTH_BUFFER_BIT);

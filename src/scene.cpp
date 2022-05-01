@@ -185,6 +185,7 @@ GTR::LightEntity::LightEntity()
 	area_size = 0;
 	target.set(0, 0, 0);
 	shadow_bias = 0;
+	cast_shadows = false;
 
 	fbo = NULL;
 	shadowmap = NULL;
