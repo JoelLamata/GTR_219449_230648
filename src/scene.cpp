@@ -188,6 +188,7 @@ GTR::LightEntity::LightEntity()
 
 	fbo = NULL;
 	shadowmap = NULL;
+	light_camera = NULL;
 }
 
 void GTR::LightEntity::renderInMenu()

@@ -11,6 +11,7 @@
 #include "extra/hdre.h"
 
 #include "fbo.h"
+#include "application.h"
 
 #include <algorithm>    // std::sort
 
@@ -70,8 +71,22 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 	std::sort(render_calls.begin(), render_calls.end(), std::greater<RenderCall>());
 
 	for (std::vector<GTR::RenderCall>::iterator rc = render_calls.begin(); rc != render_calls.end(); ++rc) {
-		renderMeshWithMaterial(rc->model, rc->mesh, rc->material, camera);
+		if (camera->testBoxInFrustum(rc->world_bounding.center, rc->world_bounding.halfsize))
+			renderMeshWithMaterial(rc->model, rc->mesh, rc->material, camera);
 	}
+	
+	glViewport(Application::instance->window_width - 256, 0, 256, 256);
+	showShadowmap(lights[0]);
+	glViewport( 0, 0, Application::instance->window_width, Application::instance->window_height);
+
+}
+
+void GTR::Renderer::showShadowmap(LightEntity* light){
+	//QUITAR
+	Shader* shader = Shader::getDefaultShader("depth");
+	shader->enable();
+	shader->setUniform("u_camera_nearfar", Vector2(light->light_camera->near_plane, light->light_camera->far_plane));
+	light->shadowmap->toViewport();
 }
 
 //renders all the prefab
@@ -98,8 +113,8 @@ void Renderer::renderNode(const Matrix44& prefab_model, GTR::Node* node, Camera*
 		BoundingBox world_bounding = transformBoundingBox(node_model,node->mesh->box);
 		
 		//if bounding box is inside the camera frustum then the object is probably visible
-		if (camera->testBoxInFrustum(world_bounding.center, world_bounding.halfsize) )
-		{
+		//if (camera->testBoxInFrustum(world_bounding.center, world_bounding.halfsize) )
+		{	//CAMBIAR A QUE DEPENDA DE LA LIGHT CAMERA TAMBIEN
 			//render node mesh
 			//renderMeshWithMaterial( node_model, node->mesh, node->material, camera );
 			//node->mesh->renderBounding(node_model, true);
@@ -107,6 +122,7 @@ void Renderer::renderNode(const Matrix44& prefab_model, GTR::Node* node, Camera*
 			rc.material = node->material;
 			rc.model = node_model;
 			rc.mesh = node->mesh;
+			rc.world_bounding = world_bounding;
 			render_calls.push_back(rc);
 		}
 	}
@@ -220,6 +236,18 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 
 			shader->setUniform("u_light_exp", light->cone_exp);
 			shader->setUniform("u_light_cosine_cutoff", (float)cos(light->cone_angle * DEG2RAD));
+
+			if (light->shadowmap) {
+				shader->setUniform("u_light_cast_shadows", 1);
+				shader->setUniform("u_light_shadowmap", light->shadowmap, 8);
+				shader->setUniform("u_shadow_viewproj", light->light_camera->viewprojection_matrix);
+				shader->setUniform("u_light_shadowbias", light->shadow_bias);
+			}
+			else {
+				shader->setUniform("u_light_cast_shadows", 0);
+
+			}
+
 
 			//do the draw call that renders the mesh into the screen
 			mesh->render(GL_TRIANGLES);
@@ -357,6 +385,8 @@ void Renderer::renderFlatMesh(const Matrix44 model, Mesh* mesh, GTR::Material* m
 }
 
 void GTR::Renderer::generateShadowmap(LightEntity* light){
+	if (light->light_type != eLightType::SPOT)
+		return;
 	if (!light->cast_shadows) {
 		if (light->fbo) {
 			delete light->fbo;
@@ -372,9 +402,27 @@ void GTR::Renderer::generateShadowmap(LightEntity* light){
 		light->shadowmap = light->fbo->depth_texture;
 	}
 
+	if (!light->light_camera)
+		light->light_camera = new Camera();
+
 	light->fbo->bind();
+
+	Camera* light_camera = light->light_camera;
+	Camera* view_camera = Camera::current;
+	light_camera->setPerspective(light->cone_angle, 1.0, 0.1, light->max_distance);
+	light_camera->lookAt(light->model.getTranslation(), light->model * Vector3(0, 0, -1), light->model.rotateVector(Vector3(0, 0, -1)));
+	light_camera->enable();
+
 	glClear(GL_DEPTH_BUFFER_BIT);
 
+	for (int i = 0; i < render_calls.size(); i++) {
+		RenderCall& rc = render_calls[i];
+		if (rc.material->alpha_mode == eAlphaMode::BLEND)
+			continue;
+		if (light_camera->testBoxInFrustum(rc.world_bounding.center, rc.world_bounding.halfsize))
+			renderFlatMesh(rc.model, rc.mesh, rc.material, light_camera);
+	}
 
 	light->fbo->unbind();
+	view_camera->enable();
 }

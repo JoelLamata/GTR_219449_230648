@@ -76,6 +76,8 @@ namespace GTR {
 		FBO* fbo;
 		Texture* shadowmap;
 
+		Camera* light_camera;
+
 		LightEntity();
 		virtual void renderInMenu();
 		virtual void configure(cJSON* json);

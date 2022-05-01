@@ -13,7 +13,7 @@ namespace GTR {
 	public:
 		Material* material;
 		Mesh* mesh;
-		//Prefab* prefab;
+		BoundingBox world_bounding;
 		Matrix44 model;
 
 		float distance_to_camera = 0;
@@ -59,6 +59,7 @@ namespace GTR {
 	
 		void renderFlatMesh(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);
 		void generateShadowmap(LightEntity* light);
+		void showShadowmap(LightEntity* light);
 	};
 
 	Texture* CubemapFromHDRE(const char* filename);
