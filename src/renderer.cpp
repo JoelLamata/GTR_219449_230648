@@ -75,9 +75,9 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 			renderMeshWithMaterial(rc->model, rc->mesh, rc->material, camera);
 	}
 	
-	//glViewport(Application::instance->window_width - 256, 0, 256, 256);
-	//showShadowmap(lights[0]);
-	//glViewport( 0, 0, Application::instance->window_width, Application::instance->window_height);
+	/*glViewport(Application::instance->window_width - 256, 0, 256, 256);
+	showShadowmap(lights[3]);
+	glViewport( 0, 0, Application::instance->window_width, Application::instance->window_height);*/
 
 }
 
@@ -112,19 +112,12 @@ void Renderer::renderNode(const Matrix44& prefab_model, GTR::Node* node, Camera*
 		//compute the bounding box of the object in world space (by using the mesh bounding box transformed to world space)
 		BoundingBox world_bounding = transformBoundingBox(node_model,node->mesh->box);
 		
-		//if bounding box is inside the camera frustum then the object is probably visible
-		//if (camera->testBoxInFrustum(world_bounding.center, world_bounding.halfsize) )
-		{	//CAMBIAR A QUE DEPENDA DE LA LIGHT CAMERA TAMBIEN
-			//render node mesh
-			//renderMeshWithMaterial( node_model, node->mesh, node->material, camera );
-			//node->mesh->renderBounding(node_model, true);
-			RenderCall rc;
-			rc.material = node->material;
-			rc.model = node_model;
-			rc.mesh = node->mesh;
-			rc.world_bounding = world_bounding;
-			render_calls.push_back(rc);
-		}
+		RenderCall rc;
+		rc.material = node->material;
+		rc.model = node_model;
+		rc.mesh = node->mesh;
+		rc.world_bounding = world_bounding;
+		render_calls.push_back(rc);
 	}
 
 	//iterate recursively with children
@@ -263,11 +256,12 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 		float light_exp[MAX_LIGHTS];
 		float light_cosine_cutoff[MAX_LIGHTS];
 
-		//int light_cast_shadows[MAX_LIGHTS];
-		//Texture* light_shadowmap[MAX_LIGHTS];
-		//Matrix44 shadow_viewproj[MAX_LIGHTS];
-		//float light_shadowbias[MAX_LIGHTS];
+		int light_cast_shadows[MAX_LIGHTS];
+		Matrix44 shadow_viewproj[MAX_LIGHTS];
+		float light_shadowbias[MAX_LIGHTS];
 
+		Texture* light_shadowmap_spot = NULL;
+		Texture* light_shadowmap_directional = NULL;
 		Matrix44 empty;
 
 		for (int i = 0; i < MAX_LIGHTS; ++i) {
@@ -282,17 +276,20 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 				light_cosine_cutoff[i] = cos(light->cone_angle * DEG2RAD);
 
 				
-				//light_cast_shadows[i] = (int)light->cast_shadows;
-				//if (light->cast_shadows && light->light_camera) {
-				//	light_shadowmap[i] = light->shadowmap;
-				//	shadow_viewproj[i] = light->light_camera->viewprojection_matrix;
-				//	light_shadowbias[i] = light->shadow_bias;
-				//}
-				//else {
-				//	light_shadowmap[i] = NULL;
-				//	shadow_viewproj[i] = empty;//AQUI
-				//	light_shadowbias[i] = NULL;
-				//}
+				light_cast_shadows[i] = (int)light->cast_shadows;
+				if (light->cast_shadows && light->light_camera) {
+					shadow_viewproj[i] = light->light_camera->viewprojection_matrix;
+					light_shadowbias[i] = light->shadow_bias;
+
+					if (light->light_type == eLightType::SPOT)
+						light_shadowmap_spot = light->shadowmap;
+					else if (light->light_type == eLightType::DIRECTIONAL)
+						light_shadowmap_directional = light->shadowmap;
+				}
+				else {
+					shadow_viewproj[i] = empty;//AQUI
+					light_shadowbias[i] = NULL;
+				}
 			}
 		}
 		shader->setUniform3Array("u_light_color", (float*)&light_color, num_lights);
@@ -305,10 +302,12 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 		shader->setUniform1Array("u_light_exp", (float*)&light_exp, num_lights);
 		shader->setUniform1Array("u_light_cosine_cutoff", (float*)&light_cosine_cutoff, num_lights);
 
-		//shader->setUniform1Array("u_light_cast_shadows", (int*)&light_cast_shadows, num_lights);
-		//shader->setUniform1Array("u_light_shadowmap", (float*)&light_shadowmap, num_lights);
-		//shader->setUniform1Array("u_shadow_viewproj", (float*)&shadow_viewproj, num_lights);
-		//shader->setUniform1Array("u_light_shadowbias", (float*)&light_shadowbias, num_lights);
+		shader->setUniform1Array("u_light_cast_shadows", (int*)&light_cast_shadows, num_lights);
+		shader->setMatrix44Array("u_shadow_viewproj", shadow_viewproj, num_lights);
+		shader->setUniform1Array("u_light_shadowbias", (float*)&light_shadowbias, num_lights);
+		//No me siento orgulloso de esto pero no sabia otra forma
+		shader->setUniform("u_light_shadowmap_spot", light_shadowmap_spot, 9);
+		shader->setUniform("u_light_shadowmap_directional", light_shadowmap_directional, 10);
 		//do the draw call that renders the mesh into the screen
 		mesh->render(GL_TRIANGLES);
 
@@ -406,8 +405,6 @@ void Renderer::renderFlatMesh(const Matrix44 model, Mesh* mesh, GTR::Material* m
 }
 
 void GTR::Renderer::generateShadowmap(LightEntity* light){
-	if (light->light_type != eLightType::SPOT)
-		return;
 	if (!light->cast_shadows) {
 		if (light->fbo) {
 			delete light->fbo;
@@ -430,10 +427,41 @@ void GTR::Renderer::generateShadowmap(LightEntity* light){
 
 	Camera* light_camera = light->light_camera;
 	Camera* view_camera = Camera::current;
-	light_camera->setPerspective(light->cone_angle, 1.0, 0.1, light->max_distance);
-	light_camera->lookAt(light->model.getTranslation(), light->model * Vector3(0, 0, -1), light->model.rotateVector(Vector3(0, 1, 0)));
-	light_camera->enable();
 
+	float aspect = 1.0;
+
+	if (light->light_type == eLightType::SPOT) {
+		light_camera->setPerspective(light->cone_angle, aspect, 0.1, light->max_distance);
+		light_camera->lookAt(light->model.getTranslation(), light->model * Vector3(0, 0, -1), light->model.rotateVector(Vector3(0, 1, 0)));
+		light_camera->enable();
+	}
+	else if (light->light_type == eLightType::DIRECTIONAL) {
+		//setup view
+		Vector3 up(0, 1, 0);
+		light_camera->lookAt(light->model * Vector3(), light->target, up);
+
+		//use light area to define how big the frustum is
+		float halfarea = light->area_size / 2;
+		light_camera->setOrthographic(-halfarea, halfarea, halfarea * aspect, -halfarea * aspect, 0.1, light->max_distance);
+
+
+		light_camera->center = view_camera->eye - (light->model.rotateVector(Vector3(0, 0, -1)) * 1000);
+
+		//compute texel size in world units, where frustum size is the distance from left to right in the camera
+		float frustum_size = abs(view_camera->left - view_camera->right);
+		float grid = frustum_size / (float)light->fbo->depth_texture->width;
+
+		//snap camera X,Y to that size in camera space assuming	the frustum is square, otherwise compute gridxand gridy
+		light_camera->view_matrix.M[3][0] = round(light_camera->view_matrix.M[3][0] / grid) * grid;
+
+		light_camera->view_matrix.M[3][1] = round(light_camera->view_matrix.M[3][1] / grid) * grid;
+
+		//update viewproj matrix (be sure no one changes it)
+		light_camera->viewprojection_matrix = light_camera->view_matrix * light_camera->projection_matrix;
+
+		light_camera->enable();
+	}
+	
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 	for (int i = 0; i < render_calls.size(); i++) {
