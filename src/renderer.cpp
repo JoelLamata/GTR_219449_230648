@@ -74,11 +74,6 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 		if (camera->testBoxInFrustum(rc->world_bounding.center, rc->world_bounding.halfsize))
 			renderMeshWithMaterial(rc->model, rc->mesh, rc->material, camera);
 	}
-	
-	/*glViewport(Application::instance->window_width - 256, 0, 256, 256);
-	showShadowmap(lights[3]);
-	glViewport( 0, 0, Application::instance->window_width, Application::instance->window_height);*/
-
 }
 
 void GTR::Renderer::showShadowmap(LightEntity* light){
@@ -136,13 +131,12 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 	//define locals to simplify coding
 	Shader* shader = NULL;
 	Texture* texture = NULL;
+	Texture* emissive_texture = NULL;
+	Texture* occlusion_texture = NULL;
+	Texture* metallic_texture = NULL;
+	Texture* normal_texture = NULL;
 	GTR::Scene* scene = GTR::Scene::instance;
 
-	texture = material->color_texture.texture;
-	//texture = material->emissive_texture;
-	//texture = material->metallic_roughness_texture;
-	//texture = material->normal_texture;
-	//texture = material->occlusion_texture;
 	if (texture == NULL)
 		texture = Texture::getWhiteTexture(); //a 1x1 white texture
 
@@ -182,8 +176,23 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 	shader->setUniform("u_time", t );
 
 	shader->setUniform("u_color", material->color);
+
+	//Textures
+	texture = material->color_texture.texture;
+	emissive_texture = material->emissive_texture.texture;
+	Vector3 emissive_factor = material->emissive_factor;
+	//occlusion_texture = material->occlusion_texture.texture;
+
+	//metallic_texture = material->metallic_roughness_texture;
+	//normal_texture = material->normal_texture;
 	if(texture)
 		shader->setUniform("u_texture", texture, 0);
+	if (emissive_texture) {
+		shader->setUniform("u_emissive_texture", emissive_texture, 1);
+		shader->setUniform("u_emissive_factor", emissive_factor);
+	}
+	if(occlusion_texture)
+		shader->setUniform("u_occlusion_texture", occlusion_texture, 2);
 
 	//this is used to say which is the alpha threshold to what we should not paint a pixel on the screen (to cut polygons according to texture alpha)
 	shader->setUniform("u_alpha_cutoff", material->alpha_mode == GTR::eAlphaMode::MASK ? material->alpha_cutoff : 0);
@@ -229,7 +238,7 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 			shader->setUniform("u_light_exp", light->cone_exp);
 			shader->setUniform("u_light_cosine_cutoff", (float)cos(light->cone_angle * DEG2RAD));
 
-			if (light->shadowmap) {
+			if (light->shadowmap && light->cast_shadows) {
 				shader->setUniform("u_light_cast_shadows", light->cast_shadows);
 				shader->setUniform("u_light_shadowmap", light->shadowmap, 8);
 				shader->setUniform("u_shadow_viewproj", light->light_camera->viewprojection_matrix);
@@ -243,6 +252,7 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 			mesh->render(GL_TRIANGLES);
 
 			shader->setUniform("u_ambient_light", Vector3());
+			shader->setUniform("u_emissive_factor", Vector3());
 		}
 	}
 	//Singlepass
@@ -287,7 +297,7 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 						light_shadowmap_directional = light->shadowmap;
 				}
 				else {
-					shadow_viewproj[i] = empty;//AQUI
+					shadow_viewproj[i] = empty;
 					light_shadowbias[i] = NULL;
 				}
 			}
@@ -312,6 +322,7 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 		mesh->render(GL_TRIANGLES);
 
 		shader->setUniform("u_ambient_light", Vector3());
+		shader->setUniform("u_emissive_factor", Vector3());
 	}
 	
 	//disable shader
@@ -359,17 +370,6 @@ void Renderer::renderFlatMesh(const Matrix44 model, Mesh* mesh, GTR::Material* m
 	//define locals to simplify coding
 	Shader* shader = NULL;
 	GTR::Scene* scene = GTR::Scene::instance;
-
-	//select the blending
-	if (material->alpha_mode == GTR::eAlphaMode::BLEND)
-	{
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	}
-	else {
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-		glDisable(GL_BLEND);
-	}
 
 	//select if render both sides of the triangles
 	if (material->two_sided)
@@ -444,11 +444,8 @@ void GTR::Renderer::generateShadowmap(LightEntity* light){
 		float halfarea = light->area_size / 2;
 		light_camera->setOrthographic(-halfarea, halfarea, halfarea * aspect, -halfarea * aspect, 0.1, light->max_distance);
 
-
-		light_camera->center = view_camera->eye - (light->model.rotateVector(Vector3(0, 0, -1)) * 1000);
-
 		//compute texel size in world units, where frustum size is the distance from left to right in the camera
-		float frustum_size = abs(view_camera->left - view_camera->right);
+		float frustum_size = view_camera->left - view_camera->right;
 		float grid = frustum_size / (float)light->fbo->depth_texture->width;
 
 		//snap camera X,Y to that size in camera space assuming	the frustum is square, otherwise compute gridxand gridy

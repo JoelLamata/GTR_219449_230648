@@ -140,37 +140,40 @@ uniform float u_light_shadowbias[MAX_LIGHTS];
 uniform sampler2D u_light_shadowmap_spot;
 uniform sampler2D u_light_shadowmap_directional;
 
+uniform sampler2D u_emissive_texture;
+uniform sampler2D u_occlusion_texture;
+uniform vec3 u_emissive_factor;
+
 out vec4 FragColor;
 
 float testShadowmap (vec3 pos, int i){
-	//project our 3D position to the shadowmap
 	vec4 proj_pos = u_shadow_viewproj[i] * vec4(pos,1.0);
 
-	//from homogeneus space to clip space
 	vec2 shadow_uv = proj_pos.xy / proj_pos.w;
 
-	//from clip space to uv space
 	shadow_uv = shadow_uv * 0.5 + vec2(0.5);
 
-	//get point depth [-1 .. +1] in non-linear space
 	float real_depth = (proj_pos.z - u_light_shadowbias[i]) / proj_pos.w;
 
-	//normalize from [-1..+1] to [0..+1] still non-linear
 	real_depth = real_depth * 0.5 + 0.5;
 	
 	float shadow_depth;
-	//read depth from depth buffer in [0..+1] non-linear
 	if(u_light_type[i] == 1)
 		shadow_depth = texture( u_light_shadowmap_spot, shadow_uv).x;
 	else if(u_light_type[i] == 2)
 		shadow_depth = texture( u_light_shadowmap_directional, shadow_uv).x;
 
-	//compute final shadow factor by comparing
 	float shadow_factor = 1.0;
 
-	//we can compare them, even if they are not linear
 	if( shadow_depth < real_depth )
 		shadow_factor = 0.0;
+
+	if( shadow_uv.x < 0.0 || shadow_uv.x > 1.0 || shadow_uv.y < 0.0 || shadow_uv.y > 1.0 )
+		return 1.0;
+
+	if(real_depth < 0.0 || real_depth > 1.0)
+		return 1.0;
+
 	return shadow_factor;
 }
 
@@ -186,6 +189,10 @@ void main()
 		discard;
 
 	vec3 light = vec3(u_ambient_light);
+	vec3 emissive_factor = texture(u_emissive_texture, v_uv).xyz;
+	emissive_factor *= u_emissive_factor;
+	vec3 occlusion_factor = texture(u_occlusion_texture, v_uv).xyz;
+
 	vec3 L;
 	for(int i = 0; i < MAX_LIGHTS; ++i){
 		if(i < u_num_lights){
@@ -226,6 +233,7 @@ void main()
 		}
 	}
 	color.xyz *= light;
+	color.xyz += emissive_factor + occlusion_factor;
 
 	FragColor = color;
 }
@@ -260,43 +268,33 @@ uniform sampler2D u_light_shadowmap;
 uniform mat4 u_shadow_viewproj;
 uniform float u_light_shadowbias;
 
+uniform sampler2D u_emissive_texture;
+uniform vec3 u_emissive_factor;
+
 out vec4 FragColor;
 
 float testShadowmap (vec3 pos){
-	//project our 3D position to the shadowmap
 	vec4 proj_pos = u_shadow_viewproj * vec4(pos,1.0);
 
-	//from homogeneus space to clip space
 	vec2 shadow_uv = proj_pos.xy / proj_pos.w;
 
-	//from clip space to uv space
 	shadow_uv = shadow_uv * 0.5 + vec2(0.5);
 
-	//get point depth [-1 .. +1] in non-linear space
 	float real_depth = (proj_pos.z - u_light_shadowbias) / proj_pos.w;
 
-	//normalize from [-1..+1] to [0..+1] still non-linear
 	real_depth = real_depth * 0.5 + 0.5;
 
-	//read depth from depth buffer in [0..+1] non-linear
 	float shadow_depth = texture( u_light_shadowmap, shadow_uv).x;
 
-	//compute final shadow factor by comparing
 	float shadow_factor = 1.0;
-
-	//we can compare them, even if they are not linear
 	if( shadow_depth < real_depth )
 		shadow_factor = 0.0;
 
-	//for directional lights
-	//it is outside on the sides
 	if( shadow_uv.x < 0.0 || shadow_uv.x > 1.0 || shadow_uv.y < 0.0 || shadow_uv.y > 1.0 )
 		return 1.0;
 
-	//it is before near or behind far plane
 	if(real_depth < 0.0 || real_depth > 1.0)
 		return 1.0;
-
 
 	return shadow_factor;
 }
@@ -308,6 +306,8 @@ void main()
 	vec2 uv = v_uv;
 	vec4 color = u_color;
 	color *= texture( u_texture, v_uv );
+	vec3 emissive_factor = texture(u_emissive_texture, v_uv).xyz;
+	emissive_factor *= u_emissive_factor;
 
 	if(color.a < u_alpha_cutoff)
 		discard;
@@ -351,6 +351,7 @@ void main()
 	light += att_factor * NdotL * u_light_color * shadow_factor;
 	
 	color.xyz *= light;
+	color.xyz += emissive_factor;
 
 	FragColor = color;
 }
