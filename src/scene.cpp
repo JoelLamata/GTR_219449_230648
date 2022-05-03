@@ -10,6 +10,9 @@ GTR::Scene::Scene()
 {
 	instance = this;
 	multi_pass = false;
+	emissive = true;
+	occlussion = true;
+	normal = true;
 }
 
 void GTR::Scene::clear()

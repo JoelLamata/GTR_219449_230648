@@ -247,6 +247,9 @@ void Application::renderDebugGUI(void)
 	ImGui::ColorEdit3("BG color", scene->background_color.v);
 	ImGui::ColorEdit3("Ambient Light", scene->ambient_light.v);
 	ImGui::Checkbox("Multipass", &scene->multi_pass);
+	ImGui::Checkbox("Emissive texture", &scene->emissive);
+	ImGui::Checkbox("Occlussion texture", &scene->occlussion);
+	ImGui::Checkbox("Normal texture", &scene->normal);
 
 	//add info to the debug panel about the camera
 	if (ImGui::TreeNode(camera, "Camera")) {

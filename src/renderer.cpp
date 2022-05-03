@@ -179,11 +179,14 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 
 	//Textures
 	texture = material->color_texture.texture;
-	emissive_texture = material->emissive_texture.texture;
 	Vector3 emissive_factor = material->emissive_factor;
-	occlusion_texture = material->occlusion_texture.texture;
-	metallic_texture = material->metallic_roughness_texture.texture;
-	normal_texture = material->normal_texture.texture;
+
+	if(scene->emissive)	emissive_texture = material->emissive_texture.texture;
+	if(scene->occlussion) {
+		occlusion_texture = material->occlusion_texture.texture;
+		metallic_texture = material->metallic_roughness_texture.texture;
+	}
+	if(scene->normal) normal_texture = material->normal_texture.texture;
 
 	if(texture)
 		shader->setUniform("u_texture", texture, 0);

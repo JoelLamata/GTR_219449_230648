@@ -94,6 +94,9 @@ namespace GTR {
 		Camera main_camera;
 
 		bool multi_pass;
+		bool emissive;
+		bool occlussion;
+		bool normal;
 
 		Scene();
 
