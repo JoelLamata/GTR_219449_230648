@@ -315,6 +315,7 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 				}
 			}
 		}
+
 		shader->setUniform3Array("u_light_color", (float*)&light_color, num_lights);
 		shader->setUniform3Array("u_light_position", (float*)&light_position, num_lights);
 		shader->setUniform3Array("u_light_direction", (float*)&light_direction, num_lights);

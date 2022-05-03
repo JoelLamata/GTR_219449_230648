@@ -143,7 +143,9 @@ uniform sampler2D u_light_shadowmap_directional;
 uniform sampler2D u_emissive_texture;
 uniform vec3 u_emissive_factor;
 uniform sampler2D u_occlusion_texture;
+uniform sampler2D u_metallic_texture;
 uniform sampler2D u_normal_texture;
+uniform int has_normal;
 
 out vec4 FragColor;
 
@@ -178,9 +180,40 @@ float testShadowmap (vec3 pos, int i){
 	return shadow_factor;
 }
 
+mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv)
+{
+	// get edge vectors of the pixel triangle
+	vec3 dp1 = dFdx( p );
+	vec3 dp2 = dFdy( p );
+	vec2 duv1 = dFdx( uv );
+	vec2 duv2 = dFdy( uv );
+	
+	// solve the linear system
+	vec3 dp2perp = cross( dp2, N );
+	vec3 dp1perp = cross( N, dp1 );
+	vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
+	vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
+ 
+	// construct a scale-invariant frame 
+	float invmax = inversesqrt( max( dot(T,T), dot(B,B) ) );
+	return mat3( T * invmax, B * invmax, N );
+}
+
+vec3 perturbNormal(vec3 N, vec3 WP, vec2 uv, vec3 normal_pixel)
+{
+	normal_pixel = normal_pixel * 255./127. - 128./127.;
+	mat3 TBN = cotangent_frame(N, WP, uv);
+	return normalize(TBN * normal_pixel);
+}
+
 void main()
 {
 	vec3 N = normalize(v_normal);
+	if(has_normal == 1){
+		vec3 normal_texture = texture2D( u_normal_texture, v_uv ).xyz;
+		if(normal_texture != vec3(0,0,0))
+			N = perturbNormal(N, v_world_position, v_uv, normal_texture);
+	}
 
 	vec2 uv = v_uv;
 	vec4 color = u_color;
@@ -189,7 +222,11 @@ void main()
 	if(color.a < u_alpha_cutoff)
 		discard;
 
-	vec3 light = vec3(u_ambient_light);
+	float occlusion = texture2D(u_occlusion_texture, v_uv).x;
+	float occlusion_metal = texture2D(u_metallic_texture, v_uv).x;
+	float occlusion_factor = occlusion * occlusion_metal;
+
+	vec3 light = vec3(u_ambient_light) * occlusion_factor;
 	vec3 emissive_factor = texture(u_emissive_texture, v_uv).xyz;
 	emissive_factor *= u_emissive_factor;
 
@@ -328,7 +365,6 @@ vec3 perturbNormal(vec3 N, vec3 WP, vec2 uv, vec3 normal_pixel)
 	mat3 TBN = cotangent_frame(N, WP, uv);
 	return normalize(TBN * normal_pixel);
 }
-
 
 void main()
 {
