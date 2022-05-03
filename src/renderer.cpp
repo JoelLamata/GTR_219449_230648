@@ -181,10 +181,10 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 	texture = material->color_texture.texture;
 	emissive_texture = material->emissive_texture.texture;
 	Vector3 emissive_factor = material->emissive_factor;
-	//occlusion_texture = material->occlusion_texture.texture;
+	occlusion_texture = material->occlusion_texture.texture;
+	metallic_texture = material->metallic_roughness_texture.texture;
+	normal_texture = material->normal_texture.texture;
 
-	//metallic_texture = material->metallic_roughness_texture;
-	//normal_texture = material->normal_texture;
 	if(texture)
 		shader->setUniform("u_texture", texture, 0);
 	if (emissive_texture) {
@@ -193,6 +193,18 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 	}
 	if(occlusion_texture)
 		shader->setUniform("u_occlusion_texture", occlusion_texture, 2);
+	else
+		shader->setUniform("u_occlusion_texture", Texture::getWhiteTexture(), 2);
+	if(metallic_texture)
+		shader->setUniform("u_metallic_texture", metallic_texture, 3);
+	else
+		shader->setUniform("u_metallic_texture", Texture::getWhiteTexture(), 3);
+
+	if (normal_texture) {
+		shader->setUniform("has_normal", 1);
+		shader->setUniform("u_normal_texture", normal_texture, 4);
+	}
+	else shader->setUniform("has_normal", 0);
 
 	//this is used to say which is the alpha threshold to what we should not paint a pixel on the screen (to cut polygons according to texture alpha)
 	shader->setUniform("u_alpha_cutoff", material->alpha_mode == GTR::eAlphaMode::MASK ? material->alpha_cutoff : 0);
@@ -253,6 +265,7 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 
 			shader->setUniform("u_ambient_light", Vector3());
 			shader->setUniform("u_emissive_factor", Vector3());
+			
 		}
 	}
 	//Singlepass
@@ -438,7 +451,7 @@ void GTR::Renderer::generateShadowmap(LightEntity* light){
 	else if (light->light_type == eLightType::DIRECTIONAL) {
 		//setup view
 		Vector3 up(0, 1, 0);
-		light_camera->lookAt(light->model * Vector3(), light->target, up);
+		light_camera->lookAt(light->model * Vector3(), light->model * Vector3() + light->model.rotateVector(Vector3(0, 0, 1)), up);
 
 		//use light area to define how big the frustum is
 		float halfarea = light->area_size / 2;
