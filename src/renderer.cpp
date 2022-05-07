@@ -285,10 +285,9 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 		int light_cast_shadows[MAX_LIGHTS];
 		Matrix44 shadow_viewproj[MAX_LIGHTS];
 		float light_shadowbias[MAX_LIGHTS];
-
-		Texture* light_shadowmap_spot = NULL;
-		Texture* light_shadowmap_directional = NULL;
 		Matrix44 empty;
+
+		int num_shadowmaps = 0;
 
 		for (int i = 0; i < MAX_LIGHTS; ++i) {
 			if (i < num_lights) {
@@ -301,16 +300,14 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 				light_exp[i] = light->cone_exp;
 				light_cosine_cutoff[i] = cos(light->cone_angle * DEG2RAD);
 
-				
 				light_cast_shadows[i] = (int)light->cast_shadows;
 				if (light->cast_shadows && light->light_camera) {
 					shadow_viewproj[i] = light->light_camera->viewprojection_matrix;
 					light_shadowbias[i] = light->shadow_bias;
 
-					if (light->light_type == eLightType::SPOT)
-						light_shadowmap_spot = light->shadowmap;
-					else if (light->light_type == eLightType::DIRECTIONAL)
-						light_shadowmap_directional = light->shadowmap;
+					//std::string text_name = "u_light_shadowmap[" + std::to_string(i) + "]"; //MIRAR PORQUE HACE QUE PETE
+					//shader->setUniform(text_name.c_str(), light->shadowmap, 11 + num_shadowmaps);
+					//num_shadowmaps += 1;
 				}
 				else {
 					shadow_viewproj[i] = empty;
@@ -332,9 +329,11 @@ void Renderer::renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Mat
 		shader->setUniform1Array("u_light_cast_shadows", (int*)&light_cast_shadows, num_lights);
 		shader->setMatrix44Array("u_shadow_viewproj", shadow_viewproj, num_lights);
 		shader->setUniform1Array("u_light_shadowbias", (float*)&light_shadowbias, num_lights);
-		//No me siento orgulloso de esto pero no sabia otra forma
-		shader->setUniform("u_light_shadowmap_spot", light_shadowmap_spot, 9);
-		shader->setUniform("u_light_shadowmap_directional", light_shadowmap_directional, 10);
+
+		//CAMBIAR
+		shader->setUniform("u_light_shadowmap[0]", lights[0]->shadowmap, 11);
+		shader->setUniform("u_light_shadowmap[3]", lights[3]->shadowmap, 12);
+
 		//do the draw call that renders the mesh into the screen
 		mesh->render(GL_TRIANGLES);
 

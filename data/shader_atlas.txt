@@ -137,8 +137,7 @@ uniform int u_light_cast_shadows[MAX_LIGHTS];
 uniform mat4 u_shadow_viewproj[MAX_LIGHTS];
 uniform float u_light_shadowbias[MAX_LIGHTS];
 
-uniform sampler2D u_light_shadowmap_spot;
-uniform sampler2D u_light_shadowmap_directional;
+uniform sampler2D u_light_shadowmap[MAX_LIGHTS];
 
 uniform sampler2D u_emissive_texture;
 uniform vec3 u_emissive_factor;
@@ -160,12 +159,13 @@ float testShadowmap (vec3 pos, int i){
 
 	real_depth = real_depth * 0.5 + 0.5;
 	
-	float shadow_depth;
-	if(u_light_type[i] == 1)
+	float shadow_depth = texture( u_light_shadowmap[i], shadow_uv).x;
+	/*if(u_light_type[i] == 1)
 		shadow_depth = texture( u_light_shadowmap_spot, shadow_uv).x;
 	else if(u_light_type[i] == 2)
-		shadow_depth = texture( u_light_shadowmap_directional, shadow_uv).x;
+		shadow_depth = texture( u_light_shadowmap_directional, shadow_uv).x;*/
 
+	
 	float shadow_factor = 1.0;
 
 	if( shadow_depth < real_depth )
