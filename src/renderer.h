@@ -39,11 +39,23 @@ namespace GTR {
 	{
 
 	public:
-
+		
+		enum ePipeline{
+			FORWARD,
+			DEFERRED
+		};
+		
 		std::vector<GTR::LightEntity*> lights;
 		std::vector<RenderCall> render_calls;
+		
+		ePipeline pipeline;
+		FBO* gbuffers_fbo;
+		bool show_gbuffers;
 
+		Renderer();
 		//add here your functions
+		void renderForward(Camera* camera, GTR::Scene* scene);
+		void renderDeferred(Camera* camera, GTR::Scene* scene);
 
 		//renders several elements of the scene
 		void renderScene(GTR::Scene* scene, Camera* camera);
@@ -55,7 +67,8 @@ namespace GTR {
 		void renderNode(const Matrix44& model, GTR::Node* node, Camera* camera);
 
 		//to render one mesh given its material and transformation matrix
-		void renderMeshWithMaterial(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);
+		void renderMeshWithMaterialToGBuffers(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);
+		void renderMeshWithMaterialAndLighting(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);
 	
 		void renderFlatMesh(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);
 		void generateShadowmap(LightEntity* light);

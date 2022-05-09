@@ -3,6 +3,7 @@ flat basic.vs flat.fs
 texture basic.vs texture.fs
 singlelight basic.vs singlelight.fs
 multilight basic.vs multilight.fs
+gbuffers basic.vs gbuffers.fs
 depth quad.vs depth.fs
 multi basic.vs multi.fs
 
@@ -432,6 +433,47 @@ void main()
 	color.xyz += emissive_factor;
 
 	FragColor = color;
+}
+
+\gbuffers.fs
+
+#version 330 core
+
+in vec3 v_position;
+in vec3 v_world_position;
+in vec3 v_normal;
+in vec2 v_uv;
+in vec4 v_color;
+
+uniform vec4 u_color;
+uniform sampler2D u_texture;
+uniform float u_time;
+uniform float u_alpha_cutoff;
+
+uniform sampler2D u_emissive_texture;
+uniform vec3 u_emissive_factor;
+uniform sampler2D u_occlusion_texture;
+uniform sampler2D u_metallic_texture;
+uniform sampler2D u_normal_texture;
+uniform int has_normal;
+
+layout(location = 0) out vec4 GB0;
+layout(location = 1) out vec4 GB1;
+layout(location = 2) out vec4 GB2;
+
+void main()
+{
+	vec3 N = normalize(v_normal);
+	
+	vec4 color = u_color;
+	color *= texture(u_texture, v_uv);
+	
+	if(color.a < u_alpha_cutoff)
+		discard;
+
+	GB0 = vec4(color.xyz, 1.0);
+	GB1 = vec4(N * 0.5 + vec3(0.5), 1.0);
+	GB2 = vec4(v_world_position * 0.01, 1.0);
 }
 
 \multi.fs
