@@ -50,6 +50,7 @@ namespace GTR {
 		
 		ePipeline pipeline;
 		FBO* gbuffers_fbo;
+		FBO* illumination_fbo;
 		bool show_gbuffers;
 
 		Renderer();

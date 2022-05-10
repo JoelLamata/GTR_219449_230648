@@ -4,6 +4,7 @@ texture basic.vs texture.fs
 singlelight basic.vs singlelight.fs
 multilight basic.vs multilight.fs
 gbuffers basic.vs gbuffers.fs
+deferred basic.vs deferred.fs
 depth quad.vs depth.fs
 multi basic.vs multi.fs
 
@@ -475,6 +476,10 @@ void main()
 	GB1 = vec4(N * 0.5 + vec3(0.5), 1.0);
 	GB2 = vec4(v_world_position * 0.01, 1.0);
 }
+
+\deferred.fs
+
+
 
 \multi.fs
 

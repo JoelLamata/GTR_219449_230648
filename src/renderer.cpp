@@ -20,6 +20,7 @@ using namespace GTR;
 GTR::Renderer::Renderer() {
 	pipeline = FORWARD;
 	gbuffers_fbo = NULL;
+	illumination_fbo = NULL;
 	show_gbuffers = false;
 }
 
@@ -51,6 +52,11 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 			GL_RGBA, 		//four channels
 			GL_UNSIGNED_BYTE, //1 byte
 			true);		//add depth_texture
+		illumination_fbo->create(width, height,
+			1,			//one texture
+			GL_RGB,			//three channels
+			GL_UNSIGNED_BYTE,	//1 byte
+			false);		//add depth_texture
 	}
 
 	gbuffers_fbo->bind();
@@ -70,6 +76,18 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	gbuffers_fbo->unbind();
 
+	illumination_fbo->bind();
+
+	//we need a fullscreen quad
+	Mesh* quad = Mesh::getQuad();
+	Shader* shader = Shader::Get("");
+
+	for (int i = 0; i < lights.size(); i++) {
+		quad->render(GL_TRIANGLES);
+	}
+
+	illumination_fbo->unbind();
+
 	if (show_gbuffers) {
 		glViewport(0, height * 0.5, width * 0.5, height * 0.5);
 		gbuffers_fbo->color_textures[0]->toViewport();
@@ -78,6 +96,11 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 		glViewport(0, 0, width * 0.5, height * 0.5);
 		gbuffers_fbo->color_textures[2]->toViewport();
 		glViewport(width * 0.5, 0, width * 0.5, height * 0.5);
+
+		Shader* shader = Shader::getDefaultShader("depth");
+		shader->enable();
+		shader->setUniform("u_camera_nearfar", Vector2(camera->near_plane, camera->far_plane));
+
 		gbuffers_fbo->depth_texture->toViewport();
 		glViewport(0, 0, width, height);
 	}
