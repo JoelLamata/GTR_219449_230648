@@ -3,6 +3,7 @@
 
 //forward declarations
 class Camera;
+class Shader;
 
 namespace GTR {
 
@@ -70,6 +71,9 @@ namespace GTR {
 		//to render one mesh given its material and transformation matrix
 		void renderMeshWithMaterialToGBuffers(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);
 		void renderMeshWithMaterialAndLighting(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);
+
+		void uploadLightToShaderMultipass(LightEntity* light, Shader* shader);
+		void uploadLightToShaderSinglepass(Shader* shader);
 	
 		void renderFlatMesh(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);
 		void generateShadowmap(LightEntity* light);

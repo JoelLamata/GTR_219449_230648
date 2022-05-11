@@ -52,11 +52,15 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 			GL_RGBA, 		//four channels
 			GL_UNSIGNED_BYTE, //1 byte
 			true);		//add depth_texture
+	}
+	if(!illumination_fbo){
+		illumination_fbo = new FBO();
+
 		illumination_fbo->create(width, height,
 			1,			//one texture
 			GL_RGB,			//three channels
 			GL_UNSIGNED_BYTE,	//1 byte
-			false);		//add depth_texture
+			true);		//add depth_texture
 	}
 
 	gbuffers_fbo->bind();
@@ -78,15 +82,55 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	illumination_fbo->bind();
 
+	glDisable(GL_DEPTH_TEST);
+
 	//we need a fullscreen quad
 	Mesh* quad = Mesh::getQuad();
-	Shader* shader = Shader::Get("");
+	Shader* shader = Shader::Get("deferred");
+	shader->enable();
+	shader->setUniform("u_ambient_light", scene->ambient_light);
 
-	for (int i = 0; i < lights.size(); i++) {
+	shader->setUniform("u_gb0_texture", gbuffers_fbo->color_textures[0], 0);
+	shader->setUniform("u_gb1_texture", gbuffers_fbo->color_textures[1], 1);
+	shader->setUniform("u_gb2_texture", gbuffers_fbo->color_textures[2], 2);
+	shader->setUniform("u_depth_texture", gbuffers_fbo->depth_texture, 3);
+
+	Matrix44 inv_vp = camera->viewprojection_matrix;
+	inv_vp.inverse();
+	shader->setUniform("u_inverse_viewprojection", inv_vp);
+	shader->setUniform("u_iRes", Vector2(1.0 / (float)width, 1.0 / (float)height));
+
+
+	int num_lights = lights.size();
+
+	if (!num_lights) {
+		shader->setUniform("u_light_color", Vector3());
 		quad->render(GL_TRIANGLES);
+	}
+	else {
+		for (int i = 0; i < num_lights; ++i) {
+			if (i == 0) {
+				glDisable(GL_BLEND);
+			}
+			else {
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+				glEnable(GL_BLEND);
+			}
+			LightEntity* light = lights[i];
+
+			uploadLightToShaderMultipass(light, shader);
+
+			//do the draw call that renders the mesh into the screen
+			quad->render(GL_TRIANGLES);
+
+			shader->setUniform("u_ambient_light", Vector3());
+			shader->setUniform("u_emissive_factor", Vector3());
+		}
 	}
 
 	illumination_fbo->unbind();
+	glDisable(GL_BLEND);
+	illumination_fbo->color_textures[0]->toViewport();
 
 	if (show_gbuffers) {
 		glViewport(0, height * 0.5, width * 0.5, height * 0.5);
@@ -104,9 +148,6 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 		gbuffers_fbo->depth_texture->toViewport();
 		glViewport(0, 0, width, height);
 	}
-
-	//Renderizar a pantalla
-		//Aplicar multipass leyendo de GBuffers
 }
 
 void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
@@ -159,9 +200,6 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 	else if (pipeline == DEFERRED)
 		renderDeferred(camera, scene);
 }
-
-
-
 
 void GTR::Renderer::showShadowmap(LightEntity* light){
 	//QUITAR
@@ -435,92 +473,19 @@ void Renderer::renderMeshWithMaterialAndLighting(const Matrix44 model, Mesh* mes
 				glEnable(GL_BLEND);
 			}
 			LightEntity* light = lights[i];
-			shader->setUniform("u_light_color", light->color * light->intensity);
-			shader->setUniform("u_light_position", light->model * Vector3());
-			shader->setUniform("u_light_max_distance", light->max_distance);
-			shader->setUniform("u_light_type", (int)light->light_type);
-
-			shader->setUniform("u_light_direction", light->model.rotateVector(Vector3(0, 0, -1)));
-
-			shader->setUniform("u_light_exp", light->cone_exp);
-			shader->setUniform("u_light_cosine_cutoff", (float)cos(light->cone_angle * DEG2RAD));
-
-			if (light->shadowmap && light->cast_shadows) {
-				shader->setUniform("u_light_cast_shadows", light->cast_shadows);
-				shader->setUniform("u_light_shadowmap", light->shadowmap, 8);
-				shader->setUniform("u_shadow_viewproj", light->light_camera->viewprojection_matrix);
-				shader->setUniform("u_light_shadowbias", light->shadow_bias);
-			}
-			else {
-				shader->setUniform("u_light_cast_shadows", 0);
-			}
+			
+			uploadLightToShaderMultipass(light, shader);
 
 			//do the draw call that renders the mesh into the screen
 			mesh->render(GL_TRIANGLES);
 
 			shader->setUniform("u_ambient_light", Vector3());
 			shader->setUniform("u_emissive_factor", Vector3());
-			
 		}
 	}
 	//Singlepass
 	else {
-		const int MAX_LIGHTS = 5;
-		Vector3 light_position[MAX_LIGHTS];
-		Vector3 light_color[MAX_LIGHTS];
-		int light_type[MAX_LIGHTS];
-		float light_max_distance[MAX_LIGHTS];
-		Vector3 light_direction[MAX_LIGHTS];
-		float light_exp[MAX_LIGHTS];
-		float light_cosine_cutoff[MAX_LIGHTS];
-
-		int light_cast_shadows[MAX_LIGHTS];
-		Matrix44 shadow_viewproj[MAX_LIGHTS];
-		float light_shadowbias[MAX_LIGHTS];
-		Matrix44 empty;
-
-		int num_shadowmaps = 0;
-
-		for (int i = 0; i < MAX_LIGHTS; ++i) {
-			if (i < num_lights) {
-				LightEntity* light = lights[i];
-				light_position[i] = light->model * Vector3();
-				light_color[i] = light->color * light->intensity;
-				light_type[i] = light->light_type;
-				light_max_distance[i] = light->max_distance;
-				light_direction[i] = light->model.rotateVector(Vector3(0, 0, -1));
-				light_exp[i] = light->cone_exp;
-				light_cosine_cutoff[i] = cos(light->cone_angle * DEG2RAD);
-
-				light_cast_shadows[i] = (int)light->cast_shadows;
-				if (light->cast_shadows && light->light_camera) {
-					shadow_viewproj[i] = light->light_camera->viewprojection_matrix;
-					light_shadowbias[i] = light->shadow_bias;
-
-					//std::string text_name = "u_light_shadowmap[" + std::to_string(i) + "]"; //MIRAR PORQUE HACE QUE PETE
-					//shader->setUniform(text_name.c_str(), light->shadowmap, 11 + num_shadowmaps);
-					//num_shadowmaps += 1;
-				}
-				else {
-					shadow_viewproj[i] = empty;
-					light_shadowbias[i] = NULL;
-				}
-			}
-		}
-
-		shader->setUniform3Array("u_light_color", (float*)&light_color, num_lights);
-		shader->setUniform3Array("u_light_position", (float*)&light_position, num_lights);
-		shader->setUniform3Array("u_light_direction", (float*)&light_direction, num_lights);
-		shader->setUniform("u_num_lights", num_lights);
-
-		shader->setUniform1Array("u_light_max_distance", (float*)&light_max_distance, num_lights);
-		shader->setUniform1Array("u_light_type", (int*)&light_type, num_lights);
-		shader->setUniform1Array("u_light_exp", (float*)&light_exp, num_lights);
-		shader->setUniform1Array("u_light_cosine_cutoff", (float*)&light_cosine_cutoff, num_lights);
-
-		shader->setUniform1Array("u_light_cast_shadows", (int*)&light_cast_shadows, num_lights);
-		shader->setMatrix44Array("u_shadow_viewproj", shadow_viewproj, num_lights);
-		shader->setUniform1Array("u_light_shadowbias", (float*)&light_shadowbias, num_lights);
+		uploadLightToShaderSinglepass(shader);
 
 		//CAMBIAR
 		shader->setUniform("u_light_shadowmap[0]", lights[0]->shadowmap, 11);
@@ -539,6 +504,88 @@ void Renderer::renderMeshWithMaterialAndLighting(const Matrix44 model, Mesh* mes
 	//set the render state as it was before to avoid problems with future renders
 	glDisable(GL_BLEND);
 	glDepthFunc(GL_LESS);
+}
+
+void GTR::Renderer::uploadLightToShaderMultipass(LightEntity* light, Shader* shader) {
+	shader->setUniform("u_light_color", light->color * light->intensity);
+	shader->setUniform("u_light_position", light->model * Vector3());
+	shader->setUniform("u_light_max_distance", light->max_distance);
+	shader->setUniform("u_light_type", (int)light->light_type);
+
+	shader->setUniform("u_light_direction", light->model.rotateVector(Vector3(0, 0, -1)));
+
+	shader->setUniform("u_light_exp", light->cone_exp);
+	shader->setUniform("u_light_cosine_cutoff", (float)cos(light->cone_angle * DEG2RAD));
+
+	if (light->shadowmap && light->cast_shadows) {
+		shader->setUniform("u_light_cast_shadows_ml", light->cast_shadows);
+		shader->setUniform("u_light_shadowmap_ml", light->shadowmap, 8);
+		shader->setUniform("u_shadow_viewproj_ml", light->light_camera->viewprojection_matrix);
+		shader->setUniform("u_light_shadowbias_ml", light->shadow_bias);
+	}
+	else {
+		shader->setUniform("u_light_cast_shadows", 0);
+	}
+}
+
+void GTR::Renderer::uploadLightToShaderSinglepass(Shader* shader) {
+	const int MAX_LIGHTS = 5;
+	Vector3 light_position[MAX_LIGHTS];
+	Vector3 light_color[MAX_LIGHTS];
+	int light_type[MAX_LIGHTS];
+	float light_max_distance[MAX_LIGHTS];
+	Vector3 light_direction[MAX_LIGHTS];
+	float light_exp[MAX_LIGHTS];
+	float light_cosine_cutoff[MAX_LIGHTS];
+
+	int light_cast_shadows[MAX_LIGHTS];
+	Matrix44 shadow_viewproj[MAX_LIGHTS];
+	float light_shadowbias[MAX_LIGHTS];
+	Matrix44 empty;
+
+	int num_lights = lights.size();
+	int num_shadowmaps = 0;
+
+	for (int i = 0; i < MAX_LIGHTS; ++i) {
+		if (i < num_lights) {
+			LightEntity* light = lights[i];
+			light_position[i] = light->model * Vector3();
+			light_color[i] = light->color * light->intensity;
+			light_type[i] = light->light_type;
+			light_max_distance[i] = light->max_distance;
+			light_direction[i] = light->model.rotateVector(Vector3(0, 0, -1));
+			light_exp[i] = light->cone_exp;
+			light_cosine_cutoff[i] = cos(light->cone_angle * DEG2RAD);
+
+			light_cast_shadows[i] = (int)light->cast_shadows;
+			if (light->cast_shadows && light->light_camera) {
+				shadow_viewproj[i] = light->light_camera->viewprojection_matrix;
+				light_shadowbias[i] = light->shadow_bias;
+
+				//std::string text_name = "u_light_shadowmap[" + std::to_string(i) + "]"; //MIRAR PORQUE HACE QUE PETE
+				//shader->setUniform(text_name.c_str(), light->shadowmap, 11 + num_shadowmaps);
+				//num_shadowmaps += 1;
+			}
+			else {
+				shadow_viewproj[i] = empty;
+				light_shadowbias[i] = NULL;
+			}
+		}
+	}
+
+	shader->setUniform3Array("u_light_color", (float*)&light_color, num_lights);
+	shader->setUniform3Array("u_light_position", (float*)&light_position, num_lights);
+	shader->setUniform3Array("u_light_direction", (float*)&light_direction, num_lights);
+	shader->setUniform("u_num_lights", num_lights);
+
+	shader->setUniform1Array("u_light_max_distance", (float*)&light_max_distance, num_lights);
+	shader->setUniform1Array("u_light_type", (int*)&light_type, num_lights);
+	shader->setUniform1Array("u_light_exp", (float*)&light_exp, num_lights);
+	shader->setUniform1Array("u_light_cosine_cutoff", (float*)&light_cosine_cutoff, num_lights);
+
+	shader->setUniform1Array("u_light_cast_shadows", (int*)&light_cast_shadows, num_lights);
+	shader->setMatrix44Array("u_shadow_viewproj", shadow_viewproj, num_lights);
+	shader->setUniform1Array("u_light_shadowbias", (float*)&light_shadowbias, num_lights);
 }
 
 Texture* GTR::CubemapFromHDRE(const char* filename)
