@@ -5,6 +5,8 @@
 class Camera;
 class Shader;
 
+using namespace std;
+
 namespace GTR {
 
 	class Prefab;

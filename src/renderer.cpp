@@ -31,7 +31,7 @@ void GTR::Renderer::renderForward(Camera* camera, GTR::Scene* scene) {
 	// Clear the color and the depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	checkGLErrors();
-	for (std::vector<GTR::RenderCall>::iterator rc = render_calls.begin(); rc != render_calls.end(); ++rc) {
+	for (vector<GTR::RenderCall>::iterator rc = render_calls.begin(); rc != render_calls.end(); ++rc) {
 		if (camera->testBoxInFrustum(rc->world_bounding.center, rc->world_bounding.halfsize))
 			renderMeshWithMaterialAndLighting(rc->model, rc->mesh, rc->material, camera);
 	}
@@ -70,10 +70,10 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	// Clear the color and the depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	checkGLErrors();
+	//checkGLErrors();
 
 	//Renderizar cada objeto con un GBuffer shader
-	for (std::vector<GTR::RenderCall>::iterator rc = render_calls.begin(); rc != render_calls.end(); ++rc) {
+	for (vector<GTR::RenderCall>::iterator rc = render_calls.begin(); rc != render_calls.end(); ++rc) {
 		if (camera->testBoxInFrustum(rc->world_bounding.center, rc->world_bounding.halfsize))
 			renderMeshWithMaterialToGBuffers(rc->model, rc->mesh, rc->material, camera);
 	}
@@ -86,6 +86,8 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	//we need a fullscreen quad
 	Mesh* quad = Mesh::getQuad();
+	Mesh* sphere = Mesh::Get("data/sphere.obj", false, false);
+
 	Shader* shader = Shader::Get("deferred");
 	shader->enable();
 	shader->setUniform("u_ambient_light", scene->ambient_light);
@@ -145,7 +147,7 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 		shader->enable();
 		shader->setUniform("u_camera_nearfar", Vector2(camera->near_plane, camera->far_plane));
 
-		gbuffers_fbo->depth_texture->toViewport();
+		gbuffers_fbo->depth_texture->toViewport(shader);
 		glViewport(0, 0, width, height);
 	}
 }
@@ -194,7 +196,7 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 	}
 
 	//rendercalls
-	std::sort(render_calls.begin(), render_calls.end(), std::greater<RenderCall>());
+	sort(render_calls.begin(), render_calls.end(), std::greater<RenderCall>());
 	if (pipeline == FORWARD)
 		renderForward(camera, scene);
 	else if (pipeline == DEFERRED)
@@ -320,6 +322,9 @@ void GTR::Renderer::renderMeshWithMaterialToGBuffers(const Matrix44 model, Mesh*
 	if (emissive_texture) {
 		shader->setUniform("u_emissive_texture", emissive_texture, 1);
 		shader->setUniform("u_emissive_factor", emissive_factor);
+	}
+	else {
+		shader->setUniform("u_emissive_factor", Vector3());
 	}
 	if (occlusion_texture)
 		shader->setUniform("u_occlusion_texture", occlusion_texture, 2);
@@ -562,7 +567,7 @@ void GTR::Renderer::uploadLightToShaderSinglepass(Shader* shader) {
 				shadow_viewproj[i] = light->light_camera->viewprojection_matrix;
 				light_shadowbias[i] = light->shadow_bias;
 
-				//std::string text_name = "u_light_shadowmap[" + std::to_string(i) + "]"; //MIRAR PORQUE HACE QUE PETE
+				//string text_name = "u_light_shadowmap[" + to_string(i) + "]"; //MIRAR PORQUE HACE QUE PETE
 				//shader->setUniform(text_name.c_str(), light->shadowmap, 11 + num_shadowmaps);
 				//num_shadowmaps += 1;
 			}
