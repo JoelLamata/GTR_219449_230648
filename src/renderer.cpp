@@ -70,7 +70,7 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	// Clear the color and the depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//checkGLErrors();
+	checkGLErrors();
 
 	//Renderizar cada objeto con un GBuffer shader
 	for (vector<GTR::RenderCall>::iterator rc = render_calls.begin(); rc != render_calls.end(); ++rc) {
@@ -86,7 +86,7 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	//we need a fullscreen quad
 	Mesh* quad = Mesh::getQuad();
-	Mesh* sphere = Mesh::Get("data/sphere.obj", false, false);
+	Mesh* sphere = Mesh::Get("data/meshes/sphere.obj", false, false);
 
 	Shader* shader = Shader::Get("deferred");
 	shader->enable();
