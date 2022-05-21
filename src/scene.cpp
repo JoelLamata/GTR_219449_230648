@@ -187,7 +187,7 @@ GTR::LightEntity::LightEntity()
 	cone_exp = 0;
 	area_size = 0;
 	target.set(0, 0, 0);
-	shadow_bias = 0.0001;
+	shadow_bias = 0.01;
 	cast_shadows = false;
 
 	fbo = NULL;
@@ -210,7 +210,7 @@ void GTR::LightEntity::renderInMenu()
 	ImGui::DragFloat("max_distance", &max_distance, 1);
 	ImGui::DragFloat("cone_angle", &cone_angle, 0.1);
 	ImGui::DragFloat("cone_exp", &cone_exp, 0.1);
-	ImGui::DragFloat("shadow_bias", &shadow_bias, 0.001);
+	ImGui::DragFloat("shadow_bias", &shadow_bias, 0.01);
 	ImGui::Checkbox("cast_shadows", &cast_shadows);
 
 }

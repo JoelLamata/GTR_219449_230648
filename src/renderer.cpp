@@ -101,7 +101,7 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	inv_vp.inverse();
 	shader->setUniform("u_inverse_viewprojection", inv_vp);
 	shader->setUniform("u_iRes", Vector2(1.0 / (float)width, 1.0 / (float)height));
-
+	shader->setUniform("u_camera_pos", camera->eye);
 
 	int num_lights = lights.size();
 
@@ -127,6 +127,16 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 			shader->setUniform("u_ambient_light", Vector3());
 			shader->setUniform("u_emissive_factor", Vector3());
+		}
+	}
+
+	// To enable the z-buffer so the grid does not appear over the objects
+	glEnable(GL_DEPTH_TEST);
+
+	// Render alphanodes in forward mode
+	for (vector<GTR::RenderCall>::iterator rc = render_calls.begin(); rc != render_calls.end(); ++rc) {
+		if (camera->testBoxInFrustum(rc->world_bounding.center, rc->world_bounding.halfsize) && rc->material->alpha_mode == GTR::eAlphaMode::BLEND) {
+			renderMeshWithMaterialAndLighting(rc->model, rc->mesh, rc->material, camera);
 		}
 	}
 
@@ -313,6 +323,8 @@ void GTR::Renderer::renderMeshWithMaterialToGBuffers(const Matrix44 model, Mesh*
 	if (scene->occlussion) {
 		occlusion_texture = material->occlusion_texture.texture;
 		metallic_texture = material->metallic_roughness_texture.texture;
+		shader->setUniform("u_metallic_factor", material->metallic_factor);
+		shader->setUniform("u_roughness_factor", material->roughness_factor);
 	}
 	if (scene->normal) 
 		normal_texture = material->normal_texture.texture;
