@@ -251,6 +251,7 @@ void Application::renderDebugGUI(void)
 	ImGui::Checkbox("Occlussion texture", &scene->occlussion);
 	ImGui::Checkbox("Normal texture", &scene->normal);
 	ImGui::Combo("Pipeline", (int*)&renderer->pipeline, "Forward\0Deferred", 2);
+	ImGui::Combo("Render Shape", (int*)&renderer->renderShape, "Quads\0Geometry", 2);
 	ImGui::Checkbox("Show GBuffers", &renderer->show_gbuffers);
 
 	//add info to the debug panel about the camera
@@ -295,6 +296,7 @@ void Application::onKeyDown( SDL_KeyboardEvent event )
 		case SDLK_F1: render_debug = !render_debug; break;
 		case SDLK_f: camera->center.set(0, 0, 0); camera->updateViewMatrix(); break;
 		case SDLK_p: renderer->pipeline = (renderer->pipeline == GTR::Renderer::FORWARD ? GTR::Renderer::DEFERRED : GTR::Renderer::FORWARD); break;
+		case SDLK_g: renderer->renderShape = (renderer->renderShape == GTR::Renderer::QUAD ? GTR::Renderer::GEOMETRY : GTR::Renderer::QUAD); break;
 		case SDLK_m: scene->multi_pass = (scene->multi_pass == true ? false : true); break;
 		case SDLK_F5: Shader::ReloadAll(); break;
 		case SDLK_F6:

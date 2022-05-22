@@ -19,6 +19,7 @@ using namespace GTR;
 
 GTR::Renderer::Renderer() {
 	pipeline = FORWARD;
+	renderShape = QUAD;
 	gbuffers_fbo = NULL;
 	illumination_fbo = NULL;
 	show_gbuffers = false;
@@ -87,8 +88,9 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	//we need a fullscreen quad
 	Mesh* quad = Mesh::getQuad();
 	Mesh* sphere = Mesh::Get("data/meshes/sphere.obj", false, false);
-
 	Shader* shader = Shader::Get("deferred");
+	if (renderShape == GEOMETRY) shader = Shader::Get("deferred_ws");	//Geometry
+	
 	shader->enable();
 	shader->setUniform("u_ambient_light", scene->ambient_light);
 
@@ -102,6 +104,8 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	shader->setUniform("u_inverse_viewprojection", inv_vp);
 	shader->setUniform("u_iRes", Vector2(1.0 / (float)width, 1.0 / (float)height));
 	shader->setUniform("u_camera_pos", camera->eye);
+
+	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 
 	int num_lights = lights.size();
 
@@ -122,13 +126,37 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 			uploadLightToShaderMultipass(light, shader);
 
-			//do the draw call that renders the mesh into the screen
-			quad->render(GL_TRIANGLES);
+			Matrix44 m;
+			Vector3 lightpos = light->model * Vector3();
+			m.setTranslation(lightpos.x, lightpos.y, lightpos.z);
+			m.scale(light->max_distance, light->max_distance, light->max_distance);
+			shader->setUniform("u_model", m);
+
+			if (renderShape == GEOMETRY && light->light_type != DIRECTIONAL) {
+
+				glEnable(GL_CULL_FACE);
+				//render only the backfacing triangles of the sphere
+				glFrontFace(GL_CW);
+
+				//and render the sphere
+				sphere->render(GL_TRIANGLES);
+			}
+			else if (renderShape == QUAD || light->light_type == DIRECTIONAL) {
+				glDisable(GL_CULL_FACE);
+
+				glFrontFace(GL_CCW);
+
+				//do the draw call that renders the mesh into the screen
+				quad->render(GL_TRIANGLES);
+			}
 
 			shader->setUniform("u_ambient_light", Vector3());
 			shader->setUniform("u_emissive_factor", Vector3());
 		}
 	}
+	glDisable(GL_CULL_FACE);
+
+	glFrontFace(GL_CCW);
 
 	// To enable the z-buffer so the grid does not appear over the objects
 	glEnable(GL_DEPTH_TEST);
@@ -201,7 +229,7 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 	//shadowmaps
 	for (int i = 0; i < lights.size(); i++) {
 		LightEntity* light = lights[i];
-		if (light->cast_shadows)
+		if (light->cast_shadows)// && light->visible)
 			generateShadowmap(light);
 	}
 
@@ -504,9 +532,9 @@ void Renderer::renderMeshWithMaterialAndLighting(const Matrix44 model, Mesh* mes
 	else {
 		uploadLightToShaderSinglepass(shader);
 
-		//CAMBIAR
-		shader->setUniform("u_light_shadowmap[0]", lights[0]->shadowmap, 11);
-		shader->setUniform("u_light_shadowmap[3]", lights[3]->shadowmap, 12);
+		//CAMBIAR EN SINGLELIGHT NO SE PUEDEN QUITAR LUCES POR ESTO
+		//shader->setUniform("u_light_shadowmap[0]", lights[0]->shadowmap, 11);
+		//shader->setUniform("u_light_shadowmap[3]", lights[3]->shadowmap, 12);
 
 		//do the draw call that renders the mesh into the screen
 		mesh->render(GL_TRIANGLES);
@@ -566,6 +594,7 @@ void GTR::Renderer::uploadLightToShaderSinglepass(Shader* shader) {
 	for (int i = 0; i < MAX_LIGHTS; ++i) {
 		if (i < num_lights) {
 			LightEntity* light = lights[i];
+				
 			light_position[i] = light->model * Vector3();
 			light_color[i] = light->color * light->intensity;
 			light_type[i] = light->light_type;
@@ -582,6 +611,10 @@ void GTR::Renderer::uploadLightToShaderSinglepass(Shader* shader) {
 				//string text_name = "u_light_shadowmap[" + to_string(i) + "]"; //MIRAR PORQUE HACE QUE PETE
 				//shader->setUniform(text_name.c_str(), light->shadowmap, 11 + num_shadowmaps);
 				//num_shadowmaps += 1;
+				if(light->light_type == SPOT)
+					shader->setUniform("u_light_shadowmap[0]", light->shadowmap, 11);
+				else if (light->light_type == DIRECTIONAL)
+					shader->setUniform("u_light_shadowmap[3]", light->shadowmap, 12);
 			}
 			else {
 				shadow_viewproj[i] = empty;

@@ -47,11 +47,16 @@ namespace GTR {
 			FORWARD,
 			DEFERRED
 		};
+		enum eRenderShape {
+			QUAD,
+			GEOMETRY
+		};
 		
 		std::vector<GTR::LightEntity*> lights;
 		std::vector<RenderCall> render_calls;
 		
 		ePipeline pipeline;
+		eRenderShape renderShape;
 		FBO* gbuffers_fbo;
 		FBO* illumination_fbo;
 		bool show_gbuffers;
