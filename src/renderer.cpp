@@ -22,7 +22,34 @@ GTR::Renderer::Renderer() {
 	renderShape = QUAD;
 	gbuffers_fbo = NULL;
 	illumination_fbo = NULL;
+	ssao_fbo = NULL;
 	show_gbuffers = false;
+	show_ssao = false;
+	random_points = generateSpherePoints(64, 1, false);
+}
+
+vector<Vector3> GTR::generateSpherePoints(int num,	float radius, bool hemi) {
+	vector<Vector3> points;
+	points.resize(num);
+	for (int i = 0; i < num; i += 3)
+	{
+		Vector3& p = points[i];
+		float u = random();
+		float v = random();
+		float theta = u * 2.0 * PI;
+		float phi = acos(2.0 * v - 1.0);
+		float r = cbrt(random() * 0.9 + 0.1) * radius;
+		float sinTheta = sin(theta);
+		float cosTheta = cos(theta);
+		float sinPhi = sin(phi);
+		float cosPhi = cos(phi);
+		p.x = r * sinPhi * cosTheta;
+		p.y = r * sinPhi * sinTheta;
+		p.z = r * cosPhi;
+		if (hemi && p.z < 0)
+			p.z *= -1.0;
+	}
+	return points;
 }
 
 void GTR::Renderer::renderForward(Camera* camera, GTR::Scene* scene) {
@@ -60,9 +87,23 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 		illumination_fbo->create(width, height,
 			1,			//one texture
 			GL_RGB,			//three channels
-			GL_UNSIGNED_BYTE,	//1 byte
+			GL_FLOAT,	//1 byte
 			true);		//add depth_texture
 	}
+	if (!ssao_fbo) {
+		ssao_fbo = new FBO();
+
+		ssao_fbo->create(width, height,
+			1,			//one texture
+			GL_RGB,			//three channels
+			GL_UNSIGNED_BYTE,	//1 byte
+			false);		//add depth_texture
+	}
+
+	Mesh* quad = Mesh::getQuad();
+	Mesh* sphere = Mesh::Get("data/meshes/sphere.obj", false, false);
+	Matrix44 inv_vp = camera->viewprojection_matrix;
+	inv_vp.inverse();
 
 	gbuffers_fbo->bind();
 
@@ -81,13 +122,29 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	gbuffers_fbo->unbind();
 
+	ssao_fbo->bind();
+
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+
+	Shader* shader_ssao = Shader::Get("ssao");
+	shader_ssao->enable();
+	shader_ssao->setUniform("u_gb1_texture", gbuffers_fbo->color_textures[1], 1);
+	shader_ssao->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	shader_ssao->setUniform("u_depth_texture", gbuffers_fbo->depth_texture, 3);
+	shader_ssao->setUniform("u_inverse_viewprojection", inv_vp);
+	shader_ssao->setUniform("u_iRes", Vector2(1.0 / (float)width, 1.0 / (float)height));
+	shader_ssao->setUniform3Array("u_points", (float*)&random_points[0], random_points.size());
+
+	quad->render(GL_TRIANGLES);
+
+	ssao_fbo->unbind();
+
 	illumination_fbo->bind();
 
 	glDisable(GL_DEPTH_TEST);
 
 	//we need a fullscreen quad
-	Mesh* quad = Mesh::getQuad();
-	Mesh* sphere = Mesh::Get("data/meshes/sphere.obj", false, false);
 	Shader* shader = Shader::Get("deferred");
 	if (renderShape == GEOMETRY) shader = Shader::Get("deferred_ws");	//Geometry
 	
@@ -98,9 +155,8 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	shader->setUniform("u_gb1_texture", gbuffers_fbo->color_textures[1], 1);
 	shader->setUniform("u_gb2_texture", gbuffers_fbo->color_textures[2], 2);
 	shader->setUniform("u_depth_texture", gbuffers_fbo->depth_texture, 3);
+	shader->setUniform("u_ssao_texture", ssao_fbo->color_textures[0], 4);
 
-	Matrix44 inv_vp = camera->viewprojection_matrix;
-	inv_vp.inverse();
 	shader->setUniform("u_inverse_viewprojection", inv_vp);
 	shader->setUniform("u_iRes", Vector2(1.0 / (float)width, 1.0 / (float)height));
 	shader->setUniform("u_camera_pos", camera->eye);
@@ -127,7 +183,8 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 			uploadLightToShaderMultipass(light, shader);
 
 			Matrix44 m;
-			Vector3 lightpos = light->model * Vector3();
+			//Vector3 lightpos = light->model * Vector3();
+			Vector3 lightpos = light->model.getTranslation();
 			m.setTranslation(lightpos.x, lightpos.y, lightpos.z);
 			m.scale(light->max_distance, light->max_distance, light->max_distance);
 			shader->setUniform("u_model", m);
@@ -187,6 +244,10 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 		gbuffers_fbo->depth_texture->toViewport(shader);
 		glViewport(0, 0, width, height);
+	}
+
+	if (show_ssao) {
+		ssao_fbo->color_textures[0]->toViewport();
 	}
 }
 

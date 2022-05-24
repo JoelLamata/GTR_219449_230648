@@ -59,7 +59,10 @@ namespace GTR {
 		eRenderShape renderShape;
 		FBO* gbuffers_fbo;
 		FBO* illumination_fbo;
+		FBO* ssao_fbo;
 		bool show_gbuffers;
+		bool show_ssao;
+		vector<Vector3> random_points;
 
 		Renderer();
 		//add here your functions
@@ -86,6 +89,8 @@ namespace GTR {
 		void generateShadowmap(LightEntity* light);
 		void showShadowmap(LightEntity* light);
 	};
+
+	vector<Vector3> generateSpherePoints(int num, float radius, bool hemi);
 
 	Texture* CubemapFromHDRE(const char* filename);
 };
