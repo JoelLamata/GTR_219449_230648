@@ -600,10 +600,6 @@ void Renderer::renderMeshWithMaterialAndLighting(const Matrix44 model, Mesh* mes
 	else {
 		uploadLightToShaderSinglepass(shader);
 
-		//CAMBIAR EN SINGLELIGHT NO SE PUEDEN QUITAR LUCES POR ESTO
-		//shader->setUniform("u_light_shadowmap[0]", lights[0]->shadowmap, 11);
-		//shader->setUniform("u_light_shadowmap[3]", lights[3]->shadowmap, 12);
-
 		//do the draw call that renders the mesh into the screen
 		mesh->render(GL_TRIANGLES);
 

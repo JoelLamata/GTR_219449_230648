@@ -100,7 +100,7 @@
 			"max_dist":1000,
 			"cast_shadows": true,
 			"light_type": "DIRECTIONAL",
-			"shadow_bias":  0.05
+			"shadow_bias":  0.001
 		}
 	]
 }
