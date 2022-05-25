@@ -23,6 +23,7 @@ GTR::Renderer::Renderer() {
 	gbuffers_fbo = NULL;
 	illumination_fbo = NULL;
 	ssao_fbo = NULL;
+	ssao_blur = NULL;
 	show_gbuffers = false;
 	show_ssao = false;
 	random_points = generateSpherePoints(64, 1, false);
@@ -31,8 +32,7 @@ GTR::Renderer::Renderer() {
 vector<Vector3> GTR::generateSpherePoints(int num,	float radius, bool hemi) {
 	vector<Vector3> points;
 	points.resize(num);
-	for (int i = 0; i < num; i += 3)
-	{
+	for (int i = 0; i < num; i++) {
 		Vector3& p = points[i];
 		float u = random();
 		float v = random();
@@ -92,12 +92,14 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	}
 	if (!ssao_fbo) {
 		ssao_fbo = new FBO();
-
 		ssao_fbo->create(width, height,
 			1,			//one texture
 			GL_RGB,			//three channels
 			GL_UNSIGNED_BYTE,	//1 byte
 			false);		//add depth_texture
+
+		ssao_blur = new Texture();
+		ssao_blur->create(width, height);
 	}
 
 	Mesh* quad = Mesh::getQuad();
@@ -136,6 +138,11 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	shader_ssao->setUniform("u_iRes", Vector2(1.0 / (float)width, 1.0 / (float)height));
 	shader_ssao->setUniform3Array("u_points", (float*)&random_points[0], random_points.size());
 
+	quad->render(GL_TRIANGLES);
+
+	Shader* shader_blur = Shader::Get("blur");
+	shader_blur->enable();
+	shader_blur->setUniform("ssaoInput", ssao_fbo->color_textures[0], 1);
 	quad->render(GL_TRIANGLES);
 
 	ssao_fbo->unbind();
@@ -630,7 +637,7 @@ void GTR::Renderer::uploadLightToShaderMultipass(LightEntity* light, Shader* sha
 		shader->setUniform("u_light_shadowbias_ml", light->shadow_bias);
 	}
 	else {
-		shader->setUniform("u_light_cast_shadows", 0);
+		shader->setUniform("u_light_cast_shadows_ml", 0);
 	}
 }
 

@@ -60,6 +60,7 @@ namespace GTR {
 		FBO* gbuffers_fbo;
 		FBO* illumination_fbo;
 		FBO* ssao_fbo;
+		Texture* ssao_blur;
 		bool show_gbuffers;
 		bool show_ssao;
 		vector<Vector3> random_points;

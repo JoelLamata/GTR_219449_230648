@@ -8,6 +8,7 @@ deferred quad.vs deferred.fs
 deferred_ws basic.vs deferred_ws.fs
 depth quad.vs depth.fs
 ssao quad.vs ssao.fs
+blur basic.vs blur.fs
 multi basic.vs multi.fs
 
 \shadowmap
@@ -80,20 +81,20 @@ float testShadowmap (vec3 pos) {
 
 mat3 cotangent_frame(vec3 N, vec3 p, vec2 uv) {
 	// get edge vectors of the pixel triangle
-	vec3 dp1 = dFdx( p );
-	vec3 dp2 = dFdy( p );
-	vec2 duv1 = dFdx( uv );
-	vec2 duv2 = dFdy( uv );
+	vec3 dp1 = dFdx(p);
+	vec3 dp2 = dFdy(p);
+	vec2 duv1 = dFdx(uv);
+	vec2 duv2 = dFdy(uv);
 	
 	// solve the linear system
-	vec3 dp2perp = cross( dp2, N );
-	vec3 dp1perp = cross( N, dp1 );
+	vec3 dp2perp = cross(dp2, N);
+	vec3 dp1perp = cross(N, dp1);
 	vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
 	vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
  
 	// construct a scale-invariant frame 
-	float invmax = inversesqrt( max( dot(T,T), dot(B,B) ) );
-	return mat3( T * invmax, B * invmax, N );
+	float invmax = inversesqrt(max(dot(T, T), dot(B, B)));
+	return mat3(T * invmax, B * invmax, N);
 }
 
 vec3 perturbNormal(vec3 N, vec3 WP, vec2 uv, vec3 normal_pixel) {
@@ -589,7 +590,7 @@ void main() {
 	vec4 color = vec4(gb0_color.xyz, 1.0);
 
 	float ssao_factor = texture( u_ssao_texture, uv ).x;
-	ssao_factor = pow( ssao_factor, 3.0 );
+	ssao_factor = pow(ssao_factor, 2.0);
 
 	vec3 light = vec3(u_ambient_light) * ssao_factor;
 
@@ -808,8 +809,10 @@ uniform vec3 u_points[64];
 
 out vec4 FragColor;
 
+#include "normal_texture"
+
 void main() {
-	vec2 uv = gl_FragCoord.xy * u_iRes.xy; 
+	vec2 uv = gl_FragCoord.xy * u_iRes.xy;
 	
 	vec4 gb0_color = texture(u_gb0_texture, uv);
 	vec4 gb1_color = texture(u_gb1_texture, uv);
@@ -826,12 +829,15 @@ void main() {
 	vec4 proj_worldpos = u_inverse_viewprojection * screen_pos;
 	vec3 v_world_position = proj_worldpos.xyz / proj_worldpos.w;
 
+	vec3 N = normalize(gb1_color.xyz * 2.0 - vec3(1.0));
+	mat3 rotmat = cotangent_frame(N, v_world_position, uv);
+
 	const int samples = 64;
 	int num = samples;
 
-	for( int i = 0; i < samples; ++i )
-	{
-		vec3 p = v_world_position + u_points[i] * 10.0;
+	for(int i = 0; i < samples; ++i) {
+		vec3 rotated_point = rotmat * u_points[i];
+		vec3 p = v_world_position + rotated_point * 10.0;
 
 		vec4 proj = u_viewprojection * vec4(p,1.0);
 		proj.xy /= proj.w;
@@ -839,17 +845,40 @@ void main() {
 		proj.z = (proj.z - 0.005) / proj.w;
 		proj.xyz = proj.xyz * 0.5 + vec3(0.5); //to [0..1]
 
-		float pdepth = texture( u_depth_texture, proj.xy ).x;
+		float pdepth = texture(u_depth_texture, proj.xy).x;
 
 		float diff = proj.z - pdepth;
-		if( diff > 0.0 && diff < 0.001 )
+		if(diff > 0.0 && diff < 0.001) {
 			num--; //remove this point from the list of visible
+		}
 	}
 
 	float ao = float(num) / float(samples);
-	
+
 	FragColor = vec4(ao);
 }
+
+\blur.fs
+
+#version 330 core
+
+in vec2 TexCoords;
+
+uniform sampler2D ssaoInput;
+
+out float FragColor;
+
+void main() {
+    vec2 texelSize = 1.0 / vec2(textureSize(ssaoInput, 0));
+    float result = 0.0;
+    for (int i = -2; i < 2; i++) {
+        for (int j = -2; j < 2; j++) {
+            vec2 offset = vec2(float(i), float(j))*texelSize;
+            result += texture(ssaoInput, TexCoords + offset).r;
+        }
+    }
+    FragColor = result/(4.0*4.0);
+}  
 
 \multi.fs
 
