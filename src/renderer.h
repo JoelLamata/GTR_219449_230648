@@ -51,12 +51,17 @@ namespace GTR {
 			QUAD,
 			GEOMETRY
 		};
+		enum ePipelineSpace {
+			LINEAR,
+			GAMMA
+		};
 		
 		std::vector<GTR::LightEntity*> lights;
 		std::vector<RenderCall> render_calls;
 		
 		ePipeline pipeline;
 		eRenderShape renderShape;
+		ePipelineSpace pipelineSpace;
 		FBO* gbuffers_fbo;
 		FBO* illumination_fbo;
 		FBO* ssao_fbo;

@@ -254,6 +254,9 @@ void Application::renderDebugGUI(void)
 	ImGui::Combo("Render Shape", (int*)&renderer->renderShape, "Quads\0Geometry", 2);
 	ImGui::Checkbox("Show GBuffers", &renderer->show_gbuffers);
 	ImGui::Checkbox("Show SSAO", &renderer->show_ssao);
+	ImGui::Combo("Pipeline space", (int*)&renderer->pipelineSpace, "Linear\0Gamma", 2);
+
+
 
 	//add info to the debug panel about the camera
 	if (ImGui::TreeNode(camera, "Camera")) {

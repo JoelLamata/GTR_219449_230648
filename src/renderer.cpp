@@ -20,6 +20,7 @@ using namespace GTR;
 GTR::Renderer::Renderer() {
 	pipeline = FORWARD;
 	renderShape = QUAD;
+	pipelineSpace = LINEAR;
 	gbuffers_fbo = NULL;
 	illumination_fbo = NULL;
 	ssao_fbo = NULL;
@@ -148,6 +149,9 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	ssao_fbo->unbind();
 
 	illumination_fbo->bind();
+
+	gbuffers_fbo->depth_texture->copyTo(NULL);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	glDisable(GL_DEPTH_TEST);
 
