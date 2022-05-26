@@ -52,8 +52,8 @@ namespace GTR {
 			GEOMETRY
 		};
 		enum ePipelineSpace {
-			LINEAR,
-			GAMMA
+			LINEAR = 0,
+			GAMMA = 1
 		};
 		
 		std::vector<GTR::LightEntity*> lights;
@@ -94,6 +94,8 @@ namespace GTR {
 		void renderFlatMesh(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);
 		void generateShadowmap(LightEntity* light);
 		void showShadowmap(LightEntity* light);
+
+		void uploadUniformsAndTextures(Shader* shader, GTR::Material* material, Camera* camera, const Matrix44 model);
 	};
 
 	vector<Vector3> generateSpherePoints(int num, float radius, bool hemi);

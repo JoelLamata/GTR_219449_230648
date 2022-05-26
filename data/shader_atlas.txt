@@ -504,6 +504,8 @@ uniform int has_normal;
 uniform float u_metallic_factor;
 uniform float u_roughness_factor;
 
+uniform int gamma_mode;
+
 layout(location = 0) out vec4 GB0;
 layout(location = 1) out vec4 GB1;
 layout(location = 2) out vec4 GB2;
@@ -513,7 +515,7 @@ void main() {
 	
 	vec4 color = u_color;
 	color *= texture(u_texture, v_uv);
-	color.xyz = pow(color.xyz,vec3(2.2)); //Linear space
+	if(gamma_mode == 1) color.xyz = pow(color.xyz,vec3(2.2)); //Linear space
 
 	vec3 metallic_texture = texture(u_metallic_texture, v_uv).xyz;
 	float metallic = u_metallic_factor * metallic_texture.z;
@@ -563,6 +565,8 @@ uniform vec3 u_camera_pos;
 uniform float u_light_cosine_cutoff;
 uniform float u_light_exp;
 
+uniform int gamma_mode;
+
 out vec4 FragColor;
 
 const int MAX_LIGHTS = 5;
@@ -600,7 +604,9 @@ void main() {
 	vec3 N = normalize(gb1_color.xyz * 2.0 - vec3(1.0));
 
 	vec4 color = vec4(gb0_color.xyz, 1.0);
-	color.xyz = pow(color.xyz,vec3(1.0/2.2)); //Linear space
+	if(gamma_mode == 1) color.xyz = pow(color.xyz,vec3(1.0/2.2)); //Linear space
+	
+	//HDR
 	/*vec3 rgb = color.xyz;
 
 	float lum = dot(rgb, vec3(0.2126, 0.7152, 0.0722));

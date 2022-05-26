@@ -174,6 +174,8 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 
+	shader->setUniform("gamma_mode", (int)pipelineSpace);
+
 	int num_lights = lights.size();
 
 	if (!num_lights) {
@@ -223,7 +225,6 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 		}
 	}
 	glDisable(GL_CULL_FACE);
-
 	glFrontFace(GL_CCW);
 
 	// To enable the z-buffer so the grid does not appear over the objects
@@ -368,15 +369,7 @@ void GTR::Renderer::renderMeshWithMaterialToGBuffers(const Matrix44 model, Mesh*
 	
 	//define locals to simplify coding
 	Shader* shader = NULL;
-	Texture* texture = NULL;
-	Texture* emissive_texture = NULL;
-	Texture* occlusion_texture = NULL;
-	Texture* metallic_texture = NULL;
-	Texture* normal_texture = NULL;
-	GTR::Scene* scene = GTR::Scene::instance;
-
-	if (texture == NULL)
-		texture = Texture::getWhiteTexture(); //a 1x1 white texture
+	
 
 	//select the blending
 	if (material->alpha_mode == GTR::eAlphaMode::BLEND) {
@@ -405,56 +398,10 @@ void GTR::Renderer::renderMeshWithMaterialToGBuffers(const Matrix44 model, Mesh*
 		return;
 	shader->enable();
 
-	//upload uniforms
-	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-	shader->setUniform("u_camera_position", camera->eye);
-	shader->setUniform("u_model", model);
-	float t = getTime();
-	shader->setUniform("u_time", t);
+	uploadUniformsAndTextures(shader, material, camera, model);
 
-	shader->setUniform("u_color", material->color);
-
-	//Textures
-	texture = material->color_texture.texture;
-	Vector3 emissive_factor = material->emissive_factor;
-
-	if (scene->emissive)	
-		emissive_texture = material->emissive_texture.texture;
-	if (scene->occlussion) {
-		occlusion_texture = material->occlusion_texture.texture;
-		metallic_texture = material->metallic_roughness_texture.texture;
-		shader->setUniform("u_metallic_factor", material->metallic_factor);
-		shader->setUniform("u_roughness_factor", material->roughness_factor);
-	}
-	if (scene->normal) 
-		normal_texture = material->normal_texture.texture;
-
-	if (texture)
-		shader->setUniform("u_texture", texture, 0);
-	if (emissive_texture) {
-		shader->setUniform("u_emissive_texture", emissive_texture, 1);
-		shader->setUniform("u_emissive_factor", emissive_factor);
-	}
-	else {
-		shader->setUniform("u_emissive_factor", Vector3());
-	}
-	if (occlusion_texture)
-		shader->setUniform("u_occlusion_texture", occlusion_texture, 2);
-	else
-		shader->setUniform("u_occlusion_texture", Texture::getWhiteTexture(), 2);
-	if (metallic_texture)
-		shader->setUniform("u_metallic_texture", metallic_texture, 3);
-	else
-		shader->setUniform("u_metallic_texture", Texture::getWhiteTexture(), 3);
-
-	if (normal_texture) {
-		shader->setUniform("has_normal", 1);
-		shader->setUniform("u_normal_texture", normal_texture, 4);
-	}
-	else shader->setUniform("has_normal", 0);
-
-	//this is used to say which is the alpha threshold to what we should not paint a pixel on the screen (to cut polygons according to texture alpha)
-	shader->setUniform("u_alpha_cutoff", material->alpha_mode == GTR::eAlphaMode::MASK ? material->alpha_cutoff : 0);
+	//Gamma mode
+	shader->setUniform("gamma_mode", (int)pipelineSpace);
 
 	//do the draw call that renders the mesh into the screen
 	mesh->render(GL_TRIANGLES);
@@ -477,15 +424,7 @@ void Renderer::renderMeshWithMaterialAndLighting(const Matrix44 model, Mesh* mes
 
 	//define locals to simplify coding
 	Shader* shader = NULL;
-	Texture* texture = NULL;
-	Texture* emissive_texture = NULL;
-	Texture* occlusion_texture = NULL;
-	Texture* metallic_texture = NULL;
-	Texture* normal_texture = NULL;
 	GTR::Scene* scene = GTR::Scene::instance;
-
-	if (texture == NULL)
-		texture = Texture::getWhiteTexture(); //a 1x1 white texture
 
 	//select the blending
 	if (material->alpha_mode == GTR::eAlphaMode::BLEND)	{
@@ -515,49 +454,7 @@ void Renderer::renderMeshWithMaterialAndLighting(const Matrix44 model, Mesh* mes
 		return;
 	shader->enable();
 
-	//upload uniforms
-	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-	shader->setUniform("u_camera_position", camera->eye);
-	shader->setUniform("u_model", model );
-	float t = getTime();
-	shader->setUniform("u_time", t );
-
-	shader->setUniform("u_color", material->color);
-
-	//Textures
-	texture = material->color_texture.texture;
-	Vector3 emissive_factor = material->emissive_factor;
-
-	if(scene->emissive)	emissive_texture = material->emissive_texture.texture;
-	if(scene->occlussion) {
-		occlusion_texture = material->occlusion_texture.texture;
-		metallic_texture = material->metallic_roughness_texture.texture;
-	}
-	if(scene->normal) normal_texture = material->normal_texture.texture;
-
-	if(texture)
-		shader->setUniform("u_texture", texture, 0);
-	if (emissive_texture) {
-		shader->setUniform("u_emissive_texture", emissive_texture, 1);
-		shader->setUniform("u_emissive_factor", emissive_factor);
-	}
-	if(occlusion_texture)
-		shader->setUniform("u_occlusion_texture", occlusion_texture, 2);
-	else
-		shader->setUniform("u_occlusion_texture", Texture::getWhiteTexture(), 2);
-	if(metallic_texture)
-		shader->setUniform("u_metallic_texture", metallic_texture, 3);
-	else
-		shader->setUniform("u_metallic_texture", Texture::getWhiteTexture(), 3);
-
-	if (normal_texture) {
-		shader->setUniform("has_normal", 1);
-		shader->setUniform("u_normal_texture", normal_texture, 4);
-	}
-	else shader->setUniform("has_normal", 0);
-
-	//this is used to say which is the alpha threshold to what we should not paint a pixel on the screen (to cut polygons according to texture alpha)
-	shader->setUniform("u_alpha_cutoff", material->alpha_mode == GTR::eAlphaMode::MASK ? material->alpha_cutoff : 0);
+	uploadUniformsAndTextures(shader, material, camera, model);
 
 	//Light
 	shader->setUniform("u_ambient_light", scene->ambient_light);
@@ -617,93 +514,6 @@ void Renderer::renderMeshWithMaterialAndLighting(const Matrix44 model, Mesh* mes
 	//set the render state as it was before to avoid problems with future renders
 	glDisable(GL_BLEND);
 	glDepthFunc(GL_LESS);
-}
-
-void GTR::Renderer::uploadLightToShaderMultipass(LightEntity* light, Shader* shader) {
-	shader->setUniform("u_light_color", light->color * light->intensity);
-	shader->setUniform("u_light_position", light->model * Vector3());
-	shader->setUniform("u_light_max_distance", light->max_distance);
-	shader->setUniform("u_light_type", (int)light->light_type);
-
-	shader->setUniform("u_light_direction", light->model.rotateVector(Vector3(0, 0, -1)));
-
-	shader->setUniform("u_light_exp", light->cone_exp);
-	shader->setUniform("u_light_cosine_cutoff", (float)cos(light->cone_angle * DEG2RAD));
-
-	if (light->shadowmap && light->cast_shadows) {
-		shader->setUniform("u_light_cast_shadows_ml", light->cast_shadows);
-		shader->setUniform("u_light_shadowmap_ml", light->shadowmap, 8);
-		shader->setUniform("u_shadow_viewproj_ml", light->light_camera->viewprojection_matrix);
-		shader->setUniform("u_light_shadowbias_ml", light->shadow_bias);
-	}
-	else {
-		shader->setUniform("u_light_cast_shadows_ml", 0);
-	}
-}
-
-void GTR::Renderer::uploadLightToShaderSinglepass(Shader* shader) {
-	const int MAX_LIGHTS = 5;
-	Vector3 light_position[MAX_LIGHTS];
-	Vector3 light_color[MAX_LIGHTS];
-	int light_type[MAX_LIGHTS];
-	float light_max_distance[MAX_LIGHTS];
-	Vector3 light_direction[MAX_LIGHTS];
-	float light_exp[MAX_LIGHTS];
-	float light_cosine_cutoff[MAX_LIGHTS];
-
-	int light_cast_shadows[MAX_LIGHTS];
-	Matrix44 shadow_viewproj[MAX_LIGHTS];
-	float light_shadowbias[MAX_LIGHTS];
-	Matrix44 empty;
-
-	int num_lights = lights.size();
-	int num_shadowmaps = 0;
-
-	for (int i = 0; i < MAX_LIGHTS; ++i) {
-		if (i < num_lights) {
-			LightEntity* light = lights[i];
-				
-			light_position[i] = light->model * Vector3();
-			light_color[i] = light->color * light->intensity;
-			light_type[i] = light->light_type;
-			light_max_distance[i] = light->max_distance;
-			light_direction[i] = light->model.rotateVector(Vector3(0, 0, -1));
-			light_exp[i] = light->cone_exp;
-			light_cosine_cutoff[i] = cos(light->cone_angle * DEG2RAD);
-
-			light_cast_shadows[i] = (int)light->cast_shadows;
-			if (light->cast_shadows && light->light_camera) {
-				shadow_viewproj[i] = light->light_camera->viewprojection_matrix;
-				light_shadowbias[i] = light->shadow_bias;
-
-				//string text_name = "u_light_shadowmap[" + to_string(i) + "]"; //MIRAR PORQUE HACE QUE PETE
-				//shader->setUniform(text_name.c_str(), light->shadowmap, 11 + num_shadowmaps);
-				//num_shadowmaps += 1;
-				if(light->light_type == SPOT)
-					shader->setUniform("u_light_shadowmap[0]", light->shadowmap, 11);
-				else if (light->light_type == DIRECTIONAL)
-					shader->setUniform("u_light_shadowmap[3]", light->shadowmap, 12);
-			}
-			else {
-				shadow_viewproj[i] = empty;
-				light_shadowbias[i] = NULL;
-			}
-		}
-	}
-
-	shader->setUniform3Array("u_light_color", (float*)&light_color, num_lights);
-	shader->setUniform3Array("u_light_position", (float*)&light_position, num_lights);
-	shader->setUniform3Array("u_light_direction", (float*)&light_direction, num_lights);
-	shader->setUniform("u_num_lights", num_lights);
-
-	shader->setUniform1Array("u_light_max_distance", (float*)&light_max_distance, num_lights);
-	shader->setUniform1Array("u_light_type", (int*)&light_type, num_lights);
-	shader->setUniform1Array("u_light_exp", (float*)&light_exp, num_lights);
-	shader->setUniform1Array("u_light_cosine_cutoff", (float*)&light_cosine_cutoff, num_lights);
-
-	shader->setUniform1Array("u_light_cast_shadows", (int*)&light_cast_shadows, num_lights);
-	shader->setMatrix44Array("u_shadow_viewproj", shadow_viewproj, num_lights);
-	shader->setUniform1Array("u_light_shadowbias", (float*)&light_shadowbias, num_lights);
 }
 
 Texture* GTR::CubemapFromHDRE(const char* filename)
@@ -844,4 +654,155 @@ void GTR::Renderer::generateShadowmap(LightEntity* light){
 
 	light->fbo->unbind();
 	view_camera->enable();
+}
+
+//Uploads
+void GTR::Renderer::uploadLightToShaderMultipass(LightEntity* light, Shader* shader) {
+	shader->setUniform("u_light_color", light->color * light->intensity);
+	shader->setUniform("u_light_position", light->model * Vector3());
+	shader->setUniform("u_light_max_distance", light->max_distance);
+	shader->setUniform("u_light_type", (int)light->light_type);
+
+	shader->setUniform("u_light_direction", light->model.rotateVector(Vector3(0, 0, -1)));
+
+	shader->setUniform("u_light_exp", light->cone_exp);
+	shader->setUniform("u_light_cosine_cutoff", (float)cos(light->cone_angle * DEG2RAD));
+
+	if (light->shadowmap && light->cast_shadows) {
+		shader->setUniform("u_light_cast_shadows_ml", light->cast_shadows);
+		shader->setUniform("u_light_shadowmap_ml", light->shadowmap, 8);
+		shader->setUniform("u_shadow_viewproj_ml", light->light_camera->viewprojection_matrix);
+		shader->setUniform("u_light_shadowbias_ml", light->shadow_bias);
+	}
+	else {
+		shader->setUniform("u_light_cast_shadows_ml", 0);
+	}
+}
+
+void GTR::Renderer::uploadLightToShaderSinglepass(Shader* shader) {
+	const int MAX_LIGHTS = 5;
+	Vector3 light_position[MAX_LIGHTS];
+	Vector3 light_color[MAX_LIGHTS];
+	int light_type[MAX_LIGHTS];
+	float light_max_distance[MAX_LIGHTS];
+	Vector3 light_direction[MAX_LIGHTS];
+	float light_exp[MAX_LIGHTS];
+	float light_cosine_cutoff[MAX_LIGHTS];
+
+	int light_cast_shadows[MAX_LIGHTS];
+	Matrix44 shadow_viewproj[MAX_LIGHTS];
+	float light_shadowbias[MAX_LIGHTS];
+	Matrix44 empty;
+
+	int num_lights = lights.size();
+	int num_shadowmaps = 0;
+
+	for (int i = 0; i < MAX_LIGHTS; ++i) {
+		if (i < num_lights) {
+			LightEntity* light = lights[i];
+
+			light_position[i] = light->model * Vector3();
+			light_color[i] = light->color * light->intensity;
+			light_type[i] = light->light_type;
+			light_max_distance[i] = light->max_distance;
+			light_direction[i] = light->model.rotateVector(Vector3(0, 0, -1));
+			light_exp[i] = light->cone_exp;
+			light_cosine_cutoff[i] = cos(light->cone_angle * DEG2RAD);
+
+			light_cast_shadows[i] = (int)light->cast_shadows;
+			if (light->cast_shadows && light->light_camera) {
+				shadow_viewproj[i] = light->light_camera->viewprojection_matrix;
+				light_shadowbias[i] = light->shadow_bias;
+
+				//string text_name = "u_light_shadowmap[" + to_string(i) + "]"; //MIRAR PORQUE HACE QUE PETE
+				//shader->setUniform(text_name.c_str(), light->shadowmap, 11 + num_shadowmaps);
+				//num_shadowmaps += 1;
+				if (light->light_type == SPOT)
+					shader->setUniform("u_light_shadowmap[0]", light->shadowmap, 11);
+				else if (light->light_type == DIRECTIONAL)
+					shader->setUniform("u_light_shadowmap[3]", light->shadowmap, 12);
+			}
+			else {
+				shadow_viewproj[i] = empty;
+				light_shadowbias[i] = NULL;
+			}
+		}
+	}
+
+	shader->setUniform3Array("u_light_color", (float*)&light_color, num_lights);
+	shader->setUniform3Array("u_light_position", (float*)&light_position, num_lights);
+	shader->setUniform3Array("u_light_direction", (float*)&light_direction, num_lights);
+	shader->setUniform("u_num_lights", num_lights);
+
+	shader->setUniform1Array("u_light_max_distance", (float*)&light_max_distance, num_lights);
+	shader->setUniform1Array("u_light_type", (int*)&light_type, num_lights);
+	shader->setUniform1Array("u_light_exp", (float*)&light_exp, num_lights);
+	shader->setUniform1Array("u_light_cosine_cutoff", (float*)&light_cosine_cutoff, num_lights);
+
+	shader->setUniform1Array("u_light_cast_shadows", (int*)&light_cast_shadows, num_lights);
+	shader->setMatrix44Array("u_shadow_viewproj", shadow_viewproj, num_lights);
+	shader->setUniform1Array("u_light_shadowbias", (float*)&light_shadowbias, num_lights);
+}
+
+void GTR::Renderer::uploadUniformsAndTextures(Shader* shader, GTR::Material* material, Camera* camera, const Matrix44 model) {
+	Texture* texture = NULL;
+	Texture* emissive_texture = NULL;
+	Texture* occlusion_texture = NULL;
+	Texture* metallic_texture = NULL;
+	Texture* normal_texture = NULL;
+	GTR::Scene* scene = GTR::Scene::instance;
+
+	if (texture == NULL)
+		texture = Texture::getWhiteTexture(); //a 1x1 white texture
+
+	//upload uniforms
+	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	shader->setUniform("u_camera_position", camera->eye);
+	shader->setUniform("u_model", model);
+	float t = getTime();
+	shader->setUniform("u_time", t);
+
+	shader->setUniform("u_color", material->color);
+
+	//Textures
+	texture = material->color_texture.texture;
+	Vector3 emissive_factor = material->emissive_factor;
+
+	if (scene->emissive)
+		emissive_texture = material->emissive_texture.texture;
+	if (scene->occlussion) {
+		occlusion_texture = material->occlusion_texture.texture;
+		metallic_texture = material->metallic_roughness_texture.texture;
+		shader->setUniform("u_metallic_factor", material->metallic_factor);
+		shader->setUniform("u_roughness_factor", material->roughness_factor);
+	}
+	if (scene->normal)
+		normal_texture = material->normal_texture.texture;
+
+	if (texture)
+		shader->setUniform("u_texture", texture, 0);
+	if (emissive_texture) {
+		shader->setUniform("u_emissive_texture", emissive_texture, 1);
+		shader->setUniform("u_emissive_factor", emissive_factor);
+	}
+	else {
+		shader->setUniform("u_emissive_factor", Vector3());
+	}
+	if (occlusion_texture)
+		shader->setUniform("u_occlusion_texture", occlusion_texture, 2);
+	else
+		shader->setUniform("u_occlusion_texture", Texture::getWhiteTexture(), 2);
+	if (metallic_texture)
+		shader->setUniform("u_metallic_texture", metallic_texture, 3);
+	else
+		shader->setUniform("u_metallic_texture", Texture::getWhiteTexture(), 3);
+
+	if (normal_texture) {
+		shader->setUniform("has_normal", 1);
+		shader->setUniform("u_normal_texture", normal_texture, 4);
+	}
+	else shader->setUniform("has_normal", 0);
+
+	//this is used to say which is the alpha threshold to what we should not paint a pixel on the screen (to cut polygons according to texture alpha)
+	shader->setUniform("u_alpha_cutoff", material->alpha_mode == GTR::eAlphaMode::MASK ? material->alpha_cutoff : 0);
 }

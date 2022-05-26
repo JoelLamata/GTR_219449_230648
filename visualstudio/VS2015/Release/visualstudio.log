@@ -1,74 +1,80 @@
-﻿  renderer.cpp
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\extra\cJSON.h(104,1): warning C4099: 'cJSON': type name first seen using 'class' now seen using 'struct'
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\extra\cJSON.h(103): message : see declaration of 'cJSON'
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(40,15): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(41,13): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(42,11): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(139,68): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(139,48): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(172,63): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(172,43): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(244,51): warning C4244: 'argument': conversion from 'double' to 'GLsizei', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(244,37): warning C4244: 'argument': conversion from 'double' to 'GLsizei', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(244,24): warning C4244: 'argument': conversion from 'double' to 'GLint', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(246,61): warning C4244: 'argument': conversion from 'double' to 'GLsizei', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(246,47): warning C4244: 'argument': conversion from 'double' to 'GLsizei', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(246,34): warning C4244: 'argument': conversion from 'double' to 'GLint', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(246,20): warning C4244: 'argument': conversion from 'double' to 'GLint', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(248,40): warning C4244: 'argument': conversion from 'double' to 'GLsizei', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(248,26): warning C4244: 'argument': conversion from 'double' to 'GLsizei', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(250,50): warning C4244: 'argument': conversion from 'double' to 'GLsizei', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(250,36): warning C4244: 'argument': conversion from 'double' to 'GLsizei', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(250,20): warning C4244: 'argument': conversion from 'double' to 'GLint', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(272,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(285,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(302,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(356,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(412,10): warning C4244: 'initializing': conversion from 'long' to 'float', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(522,10): warning C4244: 'initializing': conversion from 'long' to 'float', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(672,32): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(807,87): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(818,117): warning C4305: 'argument': truncation from 'double' to 'float'
-C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\src\renderer.cpp(837,20): warning C4018: '<': signed/unsigned mismatch
-     Creating library ..\..\framework.lib and object ..\..\framework.exp
-LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
-  Generating code
-  1 of 4627 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+﻿  application.cpp
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\scene.h(9,12): warning C4099: 'cJSON': nombre de tipo visto anteriormente usando 'struct' ahora se ve usando 'class'
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\extra\cJSON.h(103): message : vea la declaración de 'cJSON'
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\application.cpp(119,14): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\application.cpp(120,20): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\application.cpp(136,55): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\application.cpp(138,55): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\application.cpp(270,20): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\application.cpp(367,36): warning C4244: '*=': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\application.cpp(369,35): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+     Creando biblioteca ..\..\framework.lib y objeto ..\..\framework.exp
+LINK : warning LNK4098: la biblioteca predeterminada'LIBCMT' entra en conflicto con otras bibliotecas; use la biblioteca /NODEFAULTLIB:biblioteca
+  Generando código
+  8 of 4628 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     50 functions had inline decision re-evaluated but remain unchanged
-  Finished generating code
-LINK : warning LNK4286: symbol '___glewDeleteBuffers' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewLinkProgram' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewDeleteShader' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewGenBuffers' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewGetProgramInfoLog' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewDetachShader' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewUniformMatrix4fv' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewBlendEquationSeparate' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewGenVertexArrays' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewBlendEquation' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewShaderSource' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewDeleteProgram' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewActiveTexture' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewAttachShader' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewBufferData' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewGetUniformLocation' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewBlendFuncSeparate' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewDeleteVertexArrays' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewGetProgramiv' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewGetShaderInfoLog' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewUniform1i' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewCreateProgram' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewBindBuffer' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewCreateShader' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewGetAttribLocation' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewCompileShader' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewGetShaderiv' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewDrawElementsBaseVertex' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewVertexAttribPointer' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewUseProgram' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewBindSampler' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewBindVertexArray' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-LINK : warning LNK4286: symbol '___glewEnableVertexAttribArray' defined in 'glew32s.lib(glew.obj)' is imported by 'imgui_impl_opengl3.obj'
-glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\vc120.pdb'; linking object as if no debug info
-  visualstudio.vcxproj -> C:\Users\u162349\Downloads\GTR_Framework-master-final\GTR_219449_230648\framework.exe
+  Generación de código finalizada
+LINK : warning LNK4286: "___glewDeleteBuffers" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewLinkProgram" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewDeleteShader" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGenBuffers" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGetProgramInfoLog" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewDetachShader" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewUniformMatrix4fv" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewBlendEquationSeparate" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGenVertexArrays" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewBlendEquation" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewShaderSource" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewDeleteProgram" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewActiveTexture" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewAttachShader" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewBufferData" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGetUniformLocation" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewBlendFuncSeparate" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewDeleteVertexArrays" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGetProgramiv" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGetShaderInfoLog" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewUniform1i" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewCreateProgram" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewBindBuffer" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewCreateShader" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGetAttribLocation" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewCompileShader" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGetShaderiv" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewDrawElementsBaseVertex" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewVertexAttribPointer" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewUseProgram" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewBindSampler" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewBindVertexArray" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewEnableVertexAttribArray" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+box_bld.obj : warning LNK4099: no se encontró PDB 'vc142.pdb' con 'box_bld.obj' o en 'C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\vc142.pdb'; se vinculará el objeto sin tener en cuenta información de depuración
+coldet.obj : warning LNK4099: no se encontró PDB 'vc142.pdb' con 'coldet.obj' o en 'C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\vc142.pdb'; se vinculará el objeto sin tener en cuenta información de depuración
+coldet_bld.obj : warning LNK4099: no se encontró PDB 'vc142.pdb' con 'coldet_bld.obj' o en 'C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\vc142.pdb'; se vinculará el objeto sin tener en cuenta información de depuración
+math3d.obj : warning LNK4099: no se encontró PDB 'vc142.pdb' con 'math3d.obj' o en 'C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\vc142.pdb'; se vinculará el objeto sin tener en cuenta información de depuración
+mytritri.obj : warning LNK4099: no se encontró PDB 'vc142.pdb' con 'mytritri.obj' o en 'C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\vc142.pdb'; se vinculará el objeto sin tener en cuenta información de depuración
+sysdep.obj : warning LNK4099: no se encontró PDB 'vc142.pdb' con 'sysdep.obj' o en 'C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\vc142.pdb'; se vinculará el objeto sin tener en cuenta información de depuración
+tritri.obj : warning LNK4099: no se encontró PDB 'vc142.pdb' con 'tritri.obj' o en 'C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\vc142.pdb'; se vinculará el objeto sin tener en cuenta información de depuración
+picopng.obj : warning LNK4099: no se encontró PDB 'vc142.pdb' con 'picopng.obj' o en 'C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\vc142.pdb'; se vinculará el objeto sin tener en cuenta información de depuración
+* linker generated manifest res * : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+SDL2.lib(SDL2.dll) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+glew32s.lib(glew.obj) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+glew32s.lib(glew.obj) : warning LNK4099: no se encontró PDB 'vc120.pdb' con 'glew32s.lib(glew.obj)' o en 'C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\vc120.pdb'; se vinculará el objeto sin tener en cuenta información de depuración
+glew32s.lib(glew.obj) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+kernel32.lib(KERNEL32.dll) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+msvcprt.lib(MSVCP140.dll) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+msvcprt.lib(MSVCP140.dll) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+MSVCRT.lib(lldvrm.obj) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+MSVCRT.lib(new_mode.obj) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+  visualstudio.vcxproj -> C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\framework.exe
