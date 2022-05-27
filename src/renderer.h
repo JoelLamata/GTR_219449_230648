@@ -55,6 +55,10 @@ namespace GTR {
 			LINEAR = 0,
 			GAMMA = 1
 		};
+		enum eDynamicRange {
+			SDR = 0,
+			HDR = 1
+		};
 		
 		std::vector<GTR::LightEntity*> lights;
 		std::vector<RenderCall> render_calls;
@@ -62,6 +66,7 @@ namespace GTR {
 		ePipeline pipeline;
 		eRenderShape renderShape;
 		ePipelineSpace pipelineSpace;
+		eDynamicRange dynamicRange;
 		FBO* gbuffers_fbo;
 		FBO* illumination_fbo;
 		FBO* ssao_fbo;

@@ -21,6 +21,7 @@ GTR::Renderer::Renderer() {
 	pipeline = FORWARD;
 	renderShape = QUAD;
 	pipelineSpace = LINEAR;
+	dynamicRange = SDR;
 	gbuffers_fbo = NULL;
 	illumination_fbo = NULL;
 	ssao_fbo = NULL;
@@ -175,6 +176,7 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 
 	shader->setUniform("gamma_mode", (int)pipelineSpace);
+	shader->setUniform("dynamic_range", (int)dynamicRange);
 
 	int num_lights = lights.size();
 
@@ -239,6 +241,10 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	illumination_fbo->unbind();
 	glDisable(GL_BLEND);
+	//Shader* shader_gamma = Shader::Get("gamma");
+	//shader_gamma->enable();
+	//if((int)pipelineSpace) illumination_fbo->color_textures[0]->toViewport(shader);
+	//else illumination_fbo->color_textures[0]->toViewport();
 	illumination_fbo->color_textures[0]->toViewport();
 
 	if (show_gbuffers) {

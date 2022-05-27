@@ -255,8 +255,7 @@ void Application::renderDebugGUI(void)
 	ImGui::Checkbox("Show GBuffers", &renderer->show_gbuffers);
 	ImGui::Checkbox("Show SSAO", &renderer->show_ssao);
 	ImGui::Combo("Pipeline space", (int*)&renderer->pipelineSpace, "Linear\0Gamma", 2);
-
-
+	ImGui::Combo("Dynamic range", (int*)&renderer->dynamicRange, "SDR\0HDR", 2);
 
 	//add info to the debug panel about the camera
 	if (ImGui::TreeNode(camera, "Camera")) {
@@ -302,6 +301,7 @@ void Application::onKeyDown( SDL_KeyboardEvent event )
 		case SDLK_p: renderer->pipeline = (renderer->pipeline == GTR::Renderer::FORWARD ? GTR::Renderer::DEFERRED : GTR::Renderer::FORWARD); break;
 		case SDLK_g: renderer->renderShape = (renderer->renderShape == GTR::Renderer::QUAD ? GTR::Renderer::GEOMETRY : GTR::Renderer::QUAD); break;
 		case SDLK_l: renderer->pipelineSpace = (renderer->pipelineSpace == GTR::Renderer::LINEAR ? GTR::Renderer::GAMMA : GTR::Renderer::LINEAR); break;
+		case SDLK_h: renderer->dynamicRange = (renderer->dynamicRange == GTR::Renderer::SDR ? GTR::Renderer::HDR : GTR::Renderer::SDR); break;
 		case SDLK_m: scene->multi_pass = (scene->multi_pass == true ? false : true); break;
 		case SDLK_F5: Shader::ReloadAll(); break;
 		case SDLK_F6:
