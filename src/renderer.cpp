@@ -158,7 +158,6 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	//we need a fullscreen quad
 	Shader* shader = Shader::Get("deferred");
-	if (renderShape == GEOMETRY) shader = Shader::Get("deferred_ws");	//Geometry
 	
 	shader->enable();
 	shader->setUniform("u_ambient_light", scene->ambient_light);
@@ -180,48 +179,95 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	int num_lights = lights.size();
 
+	for (int i = 0; i < num_lights; i++) {
+		LightEntity* light = lights[i];
+		if (light->light_type == DIRECTIONAL) {
+			uploadLightToShaderMultipass(light, shader);
+			break;
+		}
+	}
+
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+
+	quad->render(GL_TRIANGLES);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
 	if (!num_lights) {
 		shader->setUniform("u_light_color", Vector3());
 		quad->render(GL_TRIANGLES);
 	}
 	else {
 		for (int i = 0; i < num_lights; ++i) {
-			if (i == 0) {
-				glDisable(GL_BLEND);
-			}
-			else {
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-				glEnable(GL_BLEND);
-			}
 			LightEntity* light = lights[i];
 
-			uploadLightToShaderMultipass(light, shader);
-
 			Matrix44 m;
-			//Vector3 lightpos = light->model * Vector3();
 			Vector3 lightpos = light->model.getTranslation();
 			m.setTranslation(lightpos.x, lightpos.y, lightpos.z);
 			m.scale(light->max_distance, light->max_distance, light->max_distance);
-			shader->setUniform("u_model", m);
 
-			if (renderShape == GEOMETRY && light->light_type != DIRECTIONAL) {
+			if (renderShape == GEOMETRY) {
+				shader = Shader::Get("deferred_ws");
+
+				shader->enable();
+
+				uploadLightToShaderMultipass(light, shader);
+
+				shader->setUniform("u_model", m);
+				shader->setUniform("u_gb0_texture", gbuffers_fbo->color_textures[0], 0);
+				shader->setUniform("u_gb1_texture", gbuffers_fbo->color_textures[1], 1);
+				shader->setUniform("u_gb2_texture", gbuffers_fbo->color_textures[2], 2);
+				shader->setUniform("u_depth_texture", gbuffers_fbo->depth_texture, 3);
+				shader->setUniform("u_ssao_texture", ssao_fbo->color_textures[0], 4);
+
+				shader->setUniform("u_inverse_viewprojection", inv_vp);
+				shader->setUniform("u_iRes", Vector2(1.0 / (float)width, 1.0 / (float)height));
+				shader->setUniform("u_camera_pos", camera->eye);
+
+				shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+
+				shader->setUniform("gamma_mode", (int)pipelineSpace);
+				shader->setUniform("dynamic_range", (int)dynamicRange);
 
 				glEnable(GL_CULL_FACE);
+				
 				//render only the backfacing triangles of the sphere
 				glFrontFace(GL_CW);
 
 				//and render the sphere
 				sphere->render(GL_TRIANGLES);
 			}
-			else if (renderShape == QUAD || light->light_type == DIRECTIONAL) {
+			else if (renderShape == QUAD) {
 				glDisable(GL_CULL_FACE);
-
 				glFrontFace(GL_CCW);
+
+				shader = Shader::Get("deferred_ws");
+
+				shader->enable();
+
+				uploadLightToShaderMultipass(light, shader);
+
+				shader->setUniform("u_model", m);
+				shader->setUniform("u_gb0_texture", gbuffers_fbo->color_textures[0], 0);
+				shader->setUniform("u_gb1_texture", gbuffers_fbo->color_textures[1], 1);
+				shader->setUniform("u_gb2_texture", gbuffers_fbo->color_textures[2], 2);
+				shader->setUniform("u_depth_texture", gbuffers_fbo->depth_texture, 3);
+				shader->setUniform("u_ssao_texture", ssao_fbo->color_textures[0], 4);
+
+				shader->setUniform("u_inverse_viewprojection", inv_vp);
+				shader->setUniform("u_iRes", Vector2(1.0 / (float)width, 1.0 / (float)height));
+				shader->setUniform("u_camera_pos", camera->eye);
+
+				shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+
+				shader->setUniform("gamma_mode", (int)pipelineSpace);
+				shader->setUniform("dynamic_range", (int)dynamicRange);
 
 				//do the draw call that renders the mesh into the screen
 				quad->render(GL_TRIANGLES);
 			}
-
 			shader->setUniform("u_ambient_light", Vector3());
 			shader->setUniform("u_emissive_factor", Vector3());
 		}
