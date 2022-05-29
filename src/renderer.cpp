@@ -162,20 +162,7 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	shader->enable();
 	shader->setUniform("u_ambient_light", scene->ambient_light);
 
-	shader->setUniform("u_gb0_texture", gbuffers_fbo->color_textures[0], 0);
-	shader->setUniform("u_gb1_texture", gbuffers_fbo->color_textures[1], 1);
-	shader->setUniform("u_gb2_texture", gbuffers_fbo->color_textures[2], 2);
-	shader->setUniform("u_depth_texture", gbuffers_fbo->depth_texture, 3);
-	shader->setUniform("u_ssao_texture", ssao_fbo->color_textures[0], 4);
-
-	shader->setUniform("u_inverse_viewprojection", inv_vp);
-	shader->setUniform("u_iRes", Vector2(1.0 / (float)width, 1.0 / (float)height));
-	shader->setUniform("u_camera_pos", camera->eye);
-
-	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-
-	shader->setUniform("gamma_mode", (int)pipelineSpace);
-	shader->setUniform("dynamic_range", (int)dynamicRange);
+	uploadLightToShaderDeferred(shader, &inv_vp, width, height, camera);
 
 	int num_lights = lights.size();
 
@@ -208,28 +195,16 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 			m.setTranslation(lightpos.x, lightpos.y, lightpos.z);
 			m.scale(light->max_distance, light->max_distance, light->max_distance);
 
-			if (renderShape == GEOMETRY) {
+			if (renderShape == GEOMETRY && light->light_type != DIRECTIONAL) {
 				shader = Shader::Get("deferred_ws");
 
 				shader->enable();
 
 				uploadLightToShaderMultipass(light, shader);
+				uploadLightToShaderDeferred(shader, &inv_vp, width, height, camera);
 
 				shader->setUniform("u_model", m);
-				shader->setUniform("u_gb0_texture", gbuffers_fbo->color_textures[0], 0);
-				shader->setUniform("u_gb1_texture", gbuffers_fbo->color_textures[1], 1);
-				shader->setUniform("u_gb2_texture", gbuffers_fbo->color_textures[2], 2);
-				shader->setUniform("u_depth_texture", gbuffers_fbo->depth_texture, 3);
-				shader->setUniform("u_ssao_texture", ssao_fbo->color_textures[0], 4);
-
-				shader->setUniform("u_inverse_viewprojection", inv_vp);
-				shader->setUniform("u_iRes", Vector2(1.0 / (float)width, 1.0 / (float)height));
-				shader->setUniform("u_camera_pos", camera->eye);
-
 				shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-
-				shader->setUniform("gamma_mode", (int)pipelineSpace);
-				shader->setUniform("dynamic_range", (int)dynamicRange);
 
 				glEnable(GL_CULL_FACE);
 				
@@ -243,27 +218,12 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 				glDisable(GL_CULL_FACE);
 				glFrontFace(GL_CCW);
 
-				shader = Shader::Get("deferred_ws");
+				shader = Shader::Get("deferred");
 
 				shader->enable();
 
 				uploadLightToShaderMultipass(light, shader);
-
-				shader->setUniform("u_model", m);
-				shader->setUniform("u_gb0_texture", gbuffers_fbo->color_textures[0], 0);
-				shader->setUniform("u_gb1_texture", gbuffers_fbo->color_textures[1], 1);
-				shader->setUniform("u_gb2_texture", gbuffers_fbo->color_textures[2], 2);
-				shader->setUniform("u_depth_texture", gbuffers_fbo->depth_texture, 3);
-				shader->setUniform("u_ssao_texture", ssao_fbo->color_textures[0], 4);
-
-				shader->setUniform("u_inverse_viewprojection", inv_vp);
-				shader->setUniform("u_iRes", Vector2(1.0 / (float)width, 1.0 / (float)height));
-				shader->setUniform("u_camera_pos", camera->eye);
-
-				shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-
-				shader->setUniform("gamma_mode", (int)pipelineSpace);
-				shader->setUniform("dynamic_range", (int)dynamicRange);
+				uploadLightToShaderDeferred(shader, &inv_vp, width, height, camera);
 
 				//do the draw call that renders the mesh into the screen
 				quad->render(GL_TRIANGLES);
@@ -795,6 +755,22 @@ void GTR::Renderer::uploadLightToShaderSinglepass(Shader* shader) {
 	shader->setMatrix44Array("u_shadow_viewproj", shadow_viewproj, num_lights);
 	shader->setUniform1Array("u_light_shadowbias", (float*)&light_shadowbias, num_lights);
 }
+
+void GTR::Renderer::uploadLightToShaderDeferred(Shader* shader, Matrix44* inv_vp, int width, int height, Camera* camera){
+	shader->setUniform("u_gb0_texture", gbuffers_fbo->color_textures[0], 0);
+	shader->setUniform("u_gb1_texture", gbuffers_fbo->color_textures[1], 1);
+	shader->setUniform("u_gb2_texture", gbuffers_fbo->color_textures[2], 2);
+	shader->setUniform("u_depth_texture", gbuffers_fbo->depth_texture, 3);
+	shader->setUniform("u_ssao_texture", ssao_fbo->color_textures[0], 4);
+
+	shader->setUniform("u_inverse_viewprojection", inv_vp);
+	shader->setUniform("u_iRes", Vector2(1.0 / (float)width, 1.0 / (float)height));
+	shader->setUniform("u_camera_pos", camera->eye);
+
+	shader->setUniform("gamma_mode", (int)pipelineSpace);
+	shader->setUniform("dynamic_range", (int)dynamicRange);
+}
+
 
 void GTR::Renderer::uploadUniformsAndTextures(Shader* shader, GTR::Material* material, Camera* camera, const Matrix44 model) {
 	Texture* texture = NULL;
