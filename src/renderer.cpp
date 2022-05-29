@@ -162,7 +162,7 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	shader->enable();
 	shader->setUniform("u_ambient_light", scene->ambient_light);
 
-	uploadLightToShaderDeferred(shader, &inv_vp, width, height, camera);
+	uploadLightToShaderDeferred(shader, inv_vp, width, height, camera);
 
 	int num_lights = lights.size();
 
@@ -170,7 +170,6 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 		LightEntity* light = lights[i];
 		if (light->light_type == DIRECTIONAL) {
 			uploadLightToShaderMultipass(light, shader);
-			break;
 		}
 	}
 
@@ -194,14 +193,22 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 			Vector3 lightpos = light->model.getTranslation();
 			m.setTranslation(lightpos.x, lightpos.y, lightpos.z);
 			m.scale(light->max_distance, light->max_distance, light->max_distance);
-
+			
 			if (renderShape == GEOMETRY && light->light_type != DIRECTIONAL) {
 				shader = Shader::Get("deferred_ws");
 
 				shader->enable();
 
 				uploadLightToShaderMultipass(light, shader);
-				uploadLightToShaderDeferred(shader, &inv_vp, width, height, camera);
+				uploadLightToShaderDeferred(shader, inv_vp, width, height, camera);
+				shader->setUniform("u_gb0_texture", gbuffers_fbo->color_textures[0], 0);
+
+				//if (dynamicRange == HDR) {
+				//	shader->setUniform("u_scale", 1);
+				//	shader->setUniform("u_average_lum", 1);
+				//	shader->setUniform("u_lumwhite2", 1);
+				//	shader->setUniform("u_igamma", 1);
+				//}
 
 				shader->setUniform("u_model", m);
 				shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
@@ -223,7 +230,14 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 				shader->enable();
 
 				uploadLightToShaderMultipass(light, shader);
-				uploadLightToShaderDeferred(shader, &inv_vp, width, height, camera);
+				uploadLightToShaderDeferred(shader, inv_vp, width, height, camera);
+
+				//if (dynamicRange == HDR) {
+				//	shader->setUniform("u_scale", 1);
+				//	shader->setUniform("u_average_lum", 1);
+				//	shader->setUniform("u_lumwhite2", 1);
+				//	shader->setUniform("u_igamma", 1);
+				//}
 
 				//do the draw call that renders the mesh into the screen
 				quad->render(GL_TRIANGLES);
@@ -756,7 +770,7 @@ void GTR::Renderer::uploadLightToShaderSinglepass(Shader* shader) {
 	shader->setUniform1Array("u_light_shadowbias", (float*)&light_shadowbias, num_lights);
 }
 
-void GTR::Renderer::uploadLightToShaderDeferred(Shader* shader, Matrix44* inv_vp, int width, int height, Camera* camera){
+void GTR::Renderer::uploadLightToShaderDeferred(Shader* shader, Matrix44 inv_vp, int width, int height, Camera* camera){
 	shader->setUniform("u_gb0_texture", gbuffers_fbo->color_textures[0], 0);
 	shader->setUniform("u_gb1_texture", gbuffers_fbo->color_textures[1], 1);
 	shader->setUniform("u_gb2_texture", gbuffers_fbo->color_textures[2], 2);

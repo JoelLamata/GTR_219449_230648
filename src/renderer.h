@@ -95,7 +95,7 @@ namespace GTR {
 
 		void uploadLightToShaderMultipass(LightEntity* light, Shader* shader);
 		void uploadLightToShaderSinglepass(Shader* shader);
-		void uploadLightToShaderDeferred(Shader* shader, Matrix44* inv_vp, int width, int height, Camera* camera);
+		void uploadLightToShaderDeferred(Shader* shader, Matrix44 inv_vp, int width, int height, Camera* camera);
 	
 		void renderFlatMesh(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);
 		void generateShadowmap(LightEntity* light);
