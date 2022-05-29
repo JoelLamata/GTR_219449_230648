@@ -201,7 +201,6 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 				uploadLightToShaderMultipass(light, shader);
 				uploadLightToShaderDeferred(shader, inv_vp, width, height, camera);
-				shader->setUniform("u_gb0_texture", gbuffers_fbo->color_textures[0], 0);
 
 				//if (dynamicRange == HDR) {
 				//	shader->setUniform("u_scale", 1);
