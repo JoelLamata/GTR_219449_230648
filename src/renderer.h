@@ -59,7 +59,7 @@ namespace GTR {
 			SDR = 0,
 			HDR = 1
 		};
-		
+
 		std::vector<GTR::LightEntity*> lights;
 		std::vector<RenderCall> render_calls;
 		

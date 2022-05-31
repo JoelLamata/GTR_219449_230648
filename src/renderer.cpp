@@ -28,7 +28,7 @@ GTR::Renderer::Renderer() {
 	ssao_blur = NULL;
 	show_gbuffers = false;
 	show_ssao = false;
-	random_points = generateSpherePoints(64, 1, false);
+	random_points = generateSpherePoints(64, 1, true);
 }
 
 vector<Vector3> GTR::generateSpherePoints(int num,	float radius, bool hemi) {
