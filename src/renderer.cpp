@@ -18,10 +18,10 @@
 using namespace GTR;
 
 GTR::Renderer::Renderer() {
-	pipeline = FORWARD;
-	renderShape = QUAD;
-	pipelineSpace = LINEAR;
-	dynamicRange = SDR;
+	pipeline = DEFERRED;
+	renderShape = GEOMETRY;
+	pipelineSpace = GAMMA;
+	dynamicRange = HDR;
 	gbuffers_fbo = NULL;
 	illumination_fbo = NULL;
 	ssao_fbo = NULL;
@@ -202,13 +202,6 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 				uploadLightToShaderMultipass(light, shader);
 				uploadLightToShaderDeferred(shader, inv_vp, width, height, camera);
 
-				//if (dynamicRange == HDR) {
-				//	shader->setUniform("u_scale", 1);
-				//	shader->setUniform("u_average_lum", 1);
-				//	shader->setUniform("u_lumwhite2", 1);
-				//	shader->setUniform("u_igamma", 1);
-				//}
-
 				shader->setUniform("u_model", m);
 				shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 
@@ -230,13 +223,6 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 				uploadLightToShaderMultipass(light, shader);
 				uploadLightToShaderDeferred(shader, inv_vp, width, height, camera);
-
-				//if (dynamicRange == HDR) {
-				//	shader->setUniform("u_scale", 1);
-				//	shader->setUniform("u_average_lum", 1);
-				//	shader->setUniform("u_lumwhite2", 1);
-				//	shader->setUniform("u_igamma", 1);
-				//}
 
 				//do the draw call that renders the mesh into the screen
 				quad->render(GL_TRIANGLES);
@@ -260,10 +246,6 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	illumination_fbo->unbind();
 	glDisable(GL_BLEND);
-	//Shader* shader_gamma = Shader::Get("gamma");
-	//shader_gamma->enable();
-	//if((int)pipelineSpace) illumination_fbo->color_textures[0]->toViewport(shader);
-	//else illumination_fbo->color_textures[0]->toViewport();
 	illumination_fbo->color_textures[0]->toViewport();
 
 	if (show_gbuffers) {
@@ -327,7 +309,7 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 	//shadowmaps
 	for (int i = 0; i < lights.size(); i++) {
 		LightEntity* light = lights[i];
-		if (light->cast_shadows)// && light->visible)
+		if (light->cast_shadows)
 			generateShadowmap(light);
 	}
 

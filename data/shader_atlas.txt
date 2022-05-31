@@ -578,11 +578,6 @@ uniform float u_light_exp;
 uniform int gamma_mode;
 uniform int dynamic_range;
 
-/*uniform float u_scale;
-uniform float u_average_lum;
-uniform float u_lumwhite2;
-uniform float u_igamma;*/
-
 out vec4 FragColor;
 
 const int MAX_LIGHTS = 5;
@@ -868,7 +863,6 @@ out vec4 FragColor;
 #include "normal_texture"
 
 void main() {
-	//vec2 uv = gl_FragCoord.xy * u_iRes.xy;
 	vec2 uv = v_uv + u_iRes * 0.5;
 	
 	vec4 gb0_color = texture(u_gb0_texture, uv);
