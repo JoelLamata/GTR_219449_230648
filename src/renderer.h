@@ -1,11 +1,19 @@
 #pragma once
 #include "prefab.h"
+#include "sphericalharmonics.h"
 
 //forward declarations
 class Camera;
 class Shader;
 
 using namespace std;
+
+struct sProbe {
+	Vector3 pos; //where is located
+	Vector3 local; //its ijk pos in the matrix
+	int index; //its index in the linear array
+	SphericalHarmonics sh; //coeffs
+};
 
 namespace GTR {
 
@@ -88,6 +96,8 @@ namespace GTR {
 
 		//to render one node from the prefab and its children
 		void renderNode(const Matrix44& model, GTR::Node* node, Camera* camera);
+
+		void renderProbe(Vector3 pos, float size, float* coeffs);
 
 		//to render one mesh given its material and transformation matrix
 		void renderMeshWithMaterialToGBuffers(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);

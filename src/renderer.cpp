@@ -246,7 +246,9 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	illumination_fbo->unbind();
 	glDisable(GL_BLEND);
-	illumination_fbo->color_textures[0]->toViewport();
+	Shader* shader_tm = Shader::Get("tonemapper");
+	shader_tm->enable();
+	illumination_fbo->color_textures[0]->toViewport(shader_tm);
 
 	if (show_gbuffers) {
 		glViewport(0, height * 0.5, width * 0.5, height * 0.5);
@@ -268,6 +270,29 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	if (show_ssao) {
 		ssao_fbo->color_textures[0]->toViewport();
 	}
+}
+
+void GTR::Renderer::renderProbe(Vector3 pos, float size, float* coeffs){
+	Camera* camera = Camera::current;
+	Shader* shader = Shader::Get("probe");
+	Mesh* mesh = Mesh::Get("data/meshes/sphere.obj", false, false);
+
+	glEnable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+
+	Matrix44 model;
+	model.setTranslation(pos.x, pos.y, pos.z);
+	model.scale(size, size, size);
+
+	shader->enable();
+	shader->setUniform("u_viewprojection",
+		camera->viewprojection_matrix);
+	shader->setUniform("u_camera_position", camera->eye);
+	shader->setUniform("u_model", model);
+	shader->setUniform3Array("u_coeffs", coeffs, 9);
+
+	mesh->render(GL_TRIANGLES);
 }
 
 void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
