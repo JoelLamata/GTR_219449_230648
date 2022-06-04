@@ -93,7 +93,6 @@ namespace GTR {
 		Vector3 ambient_light;
 		Camera main_camera;
 
-		bool multi_pass;
 		bool emissive;
 		bool occlussion;
 		bool normal;

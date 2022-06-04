@@ -15,7 +15,22 @@ struct sProbe {
 	SphericalHarmonics sh; //coeffs
 };
 
+struct sIrrHeader {
+	Vector3 start;
+	Vector3 end;
+	Vector3 delta;
+	Vector3 dims;
+	int num_probes;
+};
+
 namespace GTR {
+	//struct to store probes
+	struct sProbe {
+		Vector3 pos; //where is located
+		Vector3 local; //its ijk pos in the matrix
+		int index; //its index in the linear array
+		SphericalHarmonics sh; //coeffs
+	};
 
 	class Prefab;
 	class Material;
@@ -78,10 +93,20 @@ namespace GTR {
 		FBO* gbuffers_fbo;
 		FBO* illumination_fbo;
 		FBO* ssao_fbo;
+		FBO* irr_fbo;
 		Texture* ssao_blur;
+		Texture* probes_texture;
+		bool multipass;
 		bool show_gbuffers;
 		bool show_ssao;
+		bool show_probes;
+		bool show_probes_texture;
 		vector<Vector3> random_points;
+		Vector3 start_irr;
+		Vector3 end_irr;
+		Vector3 dim_irr;
+		Vector3 delta;
+		vector<sProbe> probes;
 
 		Renderer();
 		//add here your functions
@@ -97,7 +122,10 @@ namespace GTR {
 		//to render one node from the prefab and its children
 		void renderNode(const Matrix44& model, GTR::Node* node, Camera* camera);
 
+		void placeAndGenerateProbes(GTR::Scene* scene);
 		void renderProbe(Vector3 pos, float size, float* coeffs);
+		void captureProbe(sProbe& probe, GTR::Scene* scene);
+		bool loadProbes();
 
 		//to render one mesh given its material and transformation matrix
 		void renderMeshWithMaterialToGBuffers(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);
