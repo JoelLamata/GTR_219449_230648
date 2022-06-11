@@ -33,6 +33,7 @@ GTR::Renderer::Renderer() {
 	show_ssao = false;
 	show_probes = false;
 	show_probes_texture = false;
+	show_irradiance = false;
 	random_points = generateSpherePoints(64, 1, true);
 }
 
@@ -242,7 +243,7 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 			shader->setUniform("u_emissive_factor", Vector3());
 		}
 	}
-	if (probes_texture) {
+	if (probes_texture && show_irradiance) {
 		shader = Shader::Get("irradiance");
 		shader->enable();
 		uploadLightToShaderDeferred(shader, inv_vp, width, height, camera);
@@ -258,7 +259,6 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 		quad->render(GL_TRIANGLES);
 	}
 	
-
 	glDisable(GL_CULL_FACE);
 	glFrontFace(GL_CCW);
 
@@ -301,7 +301,6 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 }
 
 void GTR::Renderer::placeAndGenerateProbes(GTR::Scene* scene){
-
 	start_irr.set(-300, 5, -400);
 	end_irr.set(300, 150, 400);
 	dim_irr.set(10, 4, 10);
@@ -328,8 +327,7 @@ void GTR::Renderer::placeAndGenerateProbes(GTR::Scene* scene){
 		}
 	}
 	cout << endl;
-	for (int iP = 0; iP < probes.size(); ++iP)
-	{
+	for (int iP = 0; iP < probes.size(); ++iP){
 		int probe_index = iP;
 		captureProbe(probes[iP], scene);
 		cout << "Generating Probes: " << iP << "/" << probes.size() << "\r";

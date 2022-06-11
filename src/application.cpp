@@ -306,6 +306,8 @@ void Application::onKeyDown( SDL_KeyboardEvent event )
 		case SDLK_z: renderer->show_probes = !renderer->show_probes; break;
 		case SDLK_x: renderer->show_probes_texture = !renderer->show_probes_texture; break;
 		case SDLK_SPACE: renderer->placeAndGenerateProbes(scene); break;
+		case SDLK_c: renderer->loadProbes(); break;
+		case SDLK_v: renderer->show_irradiance = !renderer->show_irradiance;
 		case SDLK_F5: Shader::ReloadAll(); break;
 		case SDLK_F6:
 			scene->clear();

@@ -101,6 +101,7 @@ namespace GTR {
 		bool show_ssao;
 		bool show_probes;
 		bool show_probes_texture;
+		bool show_irradiance;
 		vector<Vector3> random_points;
 		Vector3 start_irr;
 		Vector3 end_irr;
