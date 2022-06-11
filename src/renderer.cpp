@@ -35,6 +35,27 @@ GTR::Renderer::Renderer() {
 	show_probes_texture = false;
 	show_irradiance = false;
 	random_points = generateSpherePoints(64, 1, true);
+	skybox = CubemapFromHDRE("data/night.hdre");
+}
+
+void GTR::Renderer::renderSkybox(Camera* camera){
+	Mesh* mesh = Mesh::Get("data/meshes/sphere.obj");
+	Shader* shader = Shader::Get("skybox");
+	Matrix44 model;
+	model.setTranslation(camera->eye.x, camera->eye.y, camera->eye.z);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+	
+	shader->enable();
+	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	shader->setUniform("u_camera_position", camera->eye);
+	shader->setUniform("u_model", model);
+	shader->setUniform("u_texture", skybox, 0);
+	mesh->render(GL_TRIANGLES);
+	shader->disable();
+
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
 }
 
 vector<Vector3> GTR::generateSpherePoints(int num,	float radius, bool hemi) {
@@ -63,7 +84,7 @@ vector<Vector3> GTR::generateSpherePoints(int num,	float radius, bool hemi) {
 void GTR::Renderer::renderForward(Camera* camera, GTR::Scene* scene) {
 	//set the clear color (the background color)
 	glClearColor(scene->background_color.x, scene->background_color.y, scene->background_color.z, 1.0);
-
+	
 	// Clear the color and the depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	checkGLErrors();
@@ -475,6 +496,7 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 	render_calls.clear();
 
 	//render entities
+	renderSkybox(camera);
 	//first store the lights, they are needed before rendering anything
 	for (int i = 0; i < scene->entities.size(); ++i) {
 		BaseEntity* ent = scene->entities[i];

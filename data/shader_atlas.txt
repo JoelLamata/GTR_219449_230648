@@ -14,6 +14,7 @@ gamma basic.vs gamma.fs
 tonemapper quad.vs tonemapper.fs
 probe basic.vs probe.fs
 irradiance quad.vs irradiance.fs
+skybox basic.vs skybox.fs
 
 \shadowmap
 //singlelight
@@ -1179,4 +1180,22 @@ void main()
 	vec3 irradiance = ComputeSHIrradiance(N, sh);
 	vec3 color = texture(u_gb0_texture, uv).xyz * irradiance;
 	FragColor = vec4(color, 1.0);
+}
+
+\skybox.fs
+
+#version 330 core
+
+in vec3 v_world_position;
+
+uniform samplerCube u_texture;
+uniform vec3 u_camera_position;
+
+out vec4 FragColor;
+
+void main()
+{
+	vec3 V = normalize( u_camera_position - v_world_position );
+
+	FragColor = texture( u_texture, V );
 }

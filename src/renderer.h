@@ -108,9 +108,11 @@ namespace GTR {
 		Vector3 dim_irr;
 		Vector3 delta;
 		vector<sProbe> probes;
+		Texture* skybox;
 
 		Renderer();
 		//add here your functions
+		void renderSkybox(Camera* camera);
 		void renderForward(Camera* camera, GTR::Scene* scene);
 		void renderDeferred(Camera* camera, GTR::Scene* scene);
 

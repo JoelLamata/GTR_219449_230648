@@ -256,6 +256,7 @@ void Application::renderDebugGUI(void)
 	ImGui::Checkbox("Show SSAO", &renderer->show_ssao);
 	ImGui::Combo("Pipeline space", (int*)&renderer->pipelineSpace, "Linear\0Gamma", 2);
 	ImGui::Combo("Dynamic range", (int*)&renderer->dynamicRange, "SDR\0HDR", 2);
+	ImGui::Checkbox("Show Irradiance", &renderer->show_irradiance);
 
 	//add info to the debug panel about the camera
 	if (ImGui::TreeNode(camera, "Camera")) {
