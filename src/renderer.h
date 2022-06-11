@@ -126,6 +126,7 @@ namespace GTR {
 		void renderProbe(Vector3 pos, float size, float* coeffs);
 		void captureProbe(sProbe& probe, GTR::Scene* scene);
 		bool loadProbes();
+		void uploadProbesToGPU();
 
 		//to render one mesh given its material and transformation matrix
 		void renderMeshWithMaterialToGBuffers(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);
