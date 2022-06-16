@@ -15,6 +15,11 @@ struct sProbe {
 	SphericalHarmonics sh; //coeffs
 };
 
+struct sReflectionProbe {
+	Vector3 pos;
+	Texture* cubemap = NULL;
+};
+
 struct sIrrHeader {
 	Vector3 start;
 	Vector3 end;
@@ -24,14 +29,6 @@ struct sIrrHeader {
 };
 
 namespace GTR {
-	//struct to store probes
-	struct sProbe {
-		Vector3 pos; //where is located
-		Vector3 local; //its ijk pos in the matrix
-		int index; //its index in the linear array
-		SphericalHarmonics sh; //coeffs
-	};
-
 	class Prefab;
 	class Material;
 	
@@ -94,6 +91,8 @@ namespace GTR {
 		FBO* illumination_fbo;
 		FBO* ssao_fbo;
 		FBO* irr_fbo;
+		FBO* reflection_fbo;
+		FBO* reflection_probe_fbo;
 		Texture* ssao_blur;
 		Texture* probes_texture;
 		bool multipass;
@@ -102,12 +101,15 @@ namespace GTR {
 		bool show_probes;
 		bool show_probes_texture;
 		bool show_irradiance;
+		bool show_reflections;
+		bool is_rendering_reflections;
 		vector<Vector3> random_points;
 		Vector3 start_irr;
 		Vector3 end_irr;
 		Vector3 dim_irr;
 		Vector3 delta;
 		vector<sProbe> probes;
+		vector<sReflectionProbe*> reflection_probes;
 		Texture* skybox;
 
 		Renderer();
@@ -130,6 +132,10 @@ namespace GTR {
 		void captureProbe(sProbe& probe, GTR::Scene* scene);
 		bool loadProbes();
 		void uploadProbesToGPU();
+
+		void renderReflectionProbes(GTR::Scene* scene, Camera* camera);
+		void updateReflectionProbes(GTR::Scene* scene);
+		void captureReflectionProbe(GTR::Scene* scene, Texture* tex, Vector3 pos);
 
 		//to render one mesh given its material and transformation matrix
 		void renderMeshWithMaterialToGBuffers(const Matrix44 model, Mesh* mesh, GTR::Material* material, Camera* camera);

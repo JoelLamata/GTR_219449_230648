@@ -15,6 +15,7 @@ tonemapper quad.vs tonemapper.fs
 probe basic.vs probe.fs
 irradiance quad.vs irradiance.fs
 skybox basic.vs skybox.fs
+reflection_probe basic.vs reflection_probe.fs
 
 \shadowmap
 //singlelight
@@ -214,6 +215,14 @@ vec3 ComputeSHIrradiance(in vec3 normal, in SH9Color sh)
 		irradiance += sh.c[i] * shCosine.c[i];
 
 	return irradiance;
+}
+
+\reflections
+uniform bool u_has_reflections;
+uniform sample2D u_reflections_texture;
+
+vec4 reflect(){
+	
 }
 
 \basic.vs
@@ -1195,7 +1204,27 @@ out vec4 FragColor;
 
 void main()
 {
-	vec3 V = normalize( u_camera_position - v_world_position );
-
+	//vec3 V = normalize( u_camera_position - v_world_position );
+	vec3 V = v_world_position - u_camera_position;
 	FragColor = texture( u_texture, V );
+}
+
+\reflection_probe.fs
+
+#version 330 core
+
+in vec3 v_world_position;
+in vec3 v_normal;
+uniform samplerCube u_texture;
+uniform vec3 u_camera_position;
+
+out vec4 FragColor;
+
+void main()
+{
+	//vec3 V = normalize( u_camera_position - v_world_position );
+	vec3 V = v_world_position - u_camera_position;
+	vec3 N = normalize(v_normal);
+	vec3 R = reflect(V, N);
+	FragColor = texture( u_texture, R );
 }

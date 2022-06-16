@@ -72,6 +72,10 @@ Application::Application(int window_width, int window_height, SDL_Window* window
 	camera->lookAt(scene->main_camera.eye, scene->main_camera.center, Vector3(0, 1, 0));
 	camera->fov = scene->main_camera.fov;
 
+	GTR::ReflectionProbeEntity* probe = new GTR::ReflectionProbeEntity();
+	probe->model.setTranslation(40, 40, 40);
+	scene->addEntity(probe);
+
 	//This class will be the one in charge of rendering all 
 	renderer = new GTR::Renderer(); //here so we have opengl ready in constructor
 
@@ -257,6 +261,7 @@ void Application::renderDebugGUI(void)
 	ImGui::Combo("Pipeline space", (int*)&renderer->pipelineSpace, "Linear\0Gamma", 2);
 	ImGui::Combo("Dynamic range", (int*)&renderer->dynamicRange, "SDR\0HDR", 2);
 	ImGui::Checkbox("Show Irradiance", &renderer->show_irradiance);
+	ImGui::Checkbox("Show Reflections", &renderer->show_reflections);
 
 	//add info to the debug panel about the camera
 	if (ImGui::TreeNode(camera, "Camera")) {
@@ -307,8 +312,10 @@ void Application::onKeyDown( SDL_KeyboardEvent event )
 		case SDLK_z: renderer->show_probes = !renderer->show_probes; break;
 		case SDLK_x: renderer->show_probes_texture = !renderer->show_probes_texture; break;
 		case SDLK_SPACE: renderer->placeAndGenerateProbes(scene); break;
+		case SDLK_1: renderer->updateReflectionProbes(scene); break;
 		case SDLK_c: renderer->loadProbes(); break;
 		case SDLK_v: renderer->show_irradiance = !renderer->show_irradiance;
+		case SDLK_r: renderer->show_reflections = !renderer->show_reflections;
 		case SDLK_F5: Shader::ReloadAll(); break;
 		case SDLK_F6:
 			scene->clear();

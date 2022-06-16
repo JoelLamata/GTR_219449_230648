@@ -211,7 +211,6 @@ void GTR::LightEntity::renderInMenu()
 	ImGui::DragFloat("cone_exp", &cone_exp, 0.1);
 	ImGui::DragFloat("shadow_bias", &shadow_bias, 0.01);
 	ImGui::Checkbox("cast_shadows", &cast_shadows);
-
 }
 
 void GTR::LightEntity::configure(cJSON* json)
@@ -232,4 +231,17 @@ void GTR::LightEntity::configure(cJSON* json)
 		light_type = eLightType::SPOT;
 	else if (str == "DIRECTIONAL")
 		light_type = eLightType::DIRECTIONAL;
+}
+
+GTR::ReflectionProbeEntity::ReflectionProbeEntity(){
+	entity_type = REFLECTION_PROBE;
+	texture = NULL;
+}
+
+void GTR::ReflectionProbeEntity::renderInMenu()
+{
+}
+
+void GTR::ReflectionProbeEntity::configure(cJSON* json)
+{
 }

@@ -28,14 +28,30 @@ GTR::Renderer::Renderer() {
 	ssao_blur = NULL;
 	probes_texture = NULL;
 	irr_fbo = NULL;
+	reflection_fbo = new FBO();
+	reflection_fbo->create(Application::instance->window_width, Application::instance->window_height);
+	reflection_probe_fbo = new FBO();
 	multipass = true;
 	show_gbuffers = false;
 	show_ssao = false;
 	show_probes = false;
 	show_probes_texture = false;
 	show_irradiance = false;
+	is_rendering_reflections = false;
 	random_points = generateSpherePoints(64, 1, true);
-	skybox = CubemapFromHDRE("data/night.hdre");
+	skybox = CubemapFromHDRE("data/panorama.hdre");
+	
+	//create the probe
+	sReflectionProbe* probe = new sReflectionProbe;
+
+	//set it up
+	probe->pos.set(90, 56, -72);
+	probe->cubemap = new Texture();
+	probe->cubemap->createCubemap(512, 512,	NULL, GL_RGB, GL_UNSIGNED_INT, true);
+
+	//add it to the list
+	reflection_probes.push_back(probe);
+
 }
 
 void GTR::Renderer::renderSkybox(Camera* camera){
@@ -88,6 +104,9 @@ void GTR::Renderer::renderForward(Camera* camera, GTR::Scene* scene) {
 	// Clear the color and the depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	checkGLErrors();
+
+	renderSkybox(camera);
+
 	for (vector<GTR::RenderCall>::iterator rc = render_calls.begin(); rc != render_calls.end(); ++rc) {
 		if (camera->testBoxInFrustum(rc->world_bounding.center, rc->world_bounding.halfsize))
 			renderMeshWithMaterialAndLighting(rc->model, rc->mesh, rc->material, camera);
@@ -455,8 +474,7 @@ void GTR::Renderer::renderProbe(Vector3 pos, float size, float* coeffs){
 	mesh->render(GL_TRIANGLES);
 }
 
-void GTR::Renderer::captureProbe(sProbe& probe, GTR::Scene* scene)
-{
+void GTR::Renderer::captureProbe(sProbe& probe, GTR::Scene* scene){
 	FloatImage images[6]; //here we will store the six views
 	Camera camera;
 
@@ -490,13 +508,11 @@ void GTR::Renderer::captureProbe(sProbe& probe, GTR::Scene* scene)
 	probe.sh = computeSH(images);
 }
 
-void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
-{
+void Renderer::renderScene(GTR::Scene* scene, Camera* camera){
 	lights.clear();
 	render_calls.clear();
 
 	//render entities
-	renderSkybox(camera);
 	//first store the lights, they are needed before rendering anything
 	for (int i = 0; i < scene->entities.size(); ++i) {
 		BaseEntity* ent = scene->entities[i];
@@ -536,10 +552,26 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera)
 
 	//rendercalls
 	sort(render_calls.begin(), render_calls.end(), std::greater<RenderCall>());
-	if (pipeline == FORWARD)
+	if (pipeline == FORWARD) {
+		if (show_reflections) {
+			reflection_fbo->bind();
+			Camera flipped_camera;
+			flipped_camera.lookAt(camera->eye * Vector3(1, -1, 1), camera->center * Vector3(1, -1, 1), Vector3(0, -1, 0));
+			flipped_camera.setPerspective(camera->fov, camera->aspect, camera->near_plane, camera->far_plane);
+			flipped_camera.enable();
+			is_rendering_reflections = true;
+			renderForward(camera, scene);
+			is_rendering_reflections = false;
+			reflection_fbo->unbind();
+			camera->enable();
+		}
 		renderForward(camera, scene);
-	else if (pipeline == DEFERRED)
+		renderReflectionProbes(scene, camera);
+
+	}
+	else if (pipeline == DEFERRED) {
 		renderDeferred(camera, scene);
+	}
 
 	if (probes_texture && show_probes_texture)
 		probes_texture->toViewport();
@@ -1052,4 +1084,65 @@ void GTR::Renderer::uploadUniformsAndTextures(Shader* shader, GTR::Material* mat
 
 	//this is used to say which is the alpha threshold to what we should not paint a pixel on the screen (to cut polygons according to texture alpha)
 	shader->setUniform("u_alpha_cutoff", material->alpha_mode == GTR::eAlphaMode::MASK ? material->alpha_cutoff : 0);
+}
+
+void GTR::Renderer::renderReflectionProbes(GTR::Scene* scene, Camera* camera){
+	Mesh* mesh = Mesh::Get("data/meshes/sphere.obj");
+	Shader* shader = Shader::Get("reflection_probe");
+	shader->enable();
+	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	shader->setUniform("u_camera_position", camera->eye);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+	for (int i = 0; i < scene->entities.size(); i++) {
+		BaseEntity* ent = scene->entities[i];
+		if (!ent->visible || ent->entity_type != eEntityType::REFLECTION_PROBE)
+			continue;
+		ReflectionProbeEntity* probe = (ReflectionProbeEntity*)ent;
+		if (!probe->texture)
+			continue;
+		shader->setUniform("u_model", ent->model);
+		shader->setUniform("u_texture", probe->texture, 0);
+
+		mesh->render(GL_TRIANGLES);
+	}
+	shader->disable();
+}
+
+void GTR::Renderer::updateReflectionProbes(GTR::Scene* scene){
+	for (int i = 0; i < scene->entities.size(); i++) {
+		BaseEntity* ent = scene->entities[i];
+		if (!ent->visible || ent->entity_type != eEntityType::REFLECTION_PROBE)
+			continue;
+		ReflectionProbeEntity* probe = (ReflectionProbeEntity*)ent;
+		if (!probe->texture) {
+			probe->texture = new Texture();
+			probe->texture->createCubemap(512, 512, NULL, GL_RGB, GL_UNSIGNED_INT, true);
+		}
+
+		captureReflectionProbe(scene, probe->texture, probe->model.getTranslation());
+	}
+}
+
+void GTR::Renderer::captureReflectionProbe(GTR::Scene* scene, Texture* tex, Vector3 pos){
+	Camera camera;
+	//set the fov to 90 and the aspect to 1
+	//camera.setPerspective(90, 1, 0.1, 1000);
+	
+	for (int i = 0; i < 6; i++) {
+		reflection_probe_fbo->setTexture(tex, i);
+		camera.setPerspective(90, 1, 0.1, 1000);
+		Vector3 eye = pos;
+		Vector3 center = pos + cubemapFaceNormals[i][2];
+		Vector3 up = cubemapFaceNormals[i][1];
+		camera.lookAt(eye, center, up);
+		camera.enable();
+		reflection_probe_fbo->bind();
+		is_rendering_reflections = true;
+		renderForward(&camera, scene);
+		is_rendering_reflections = false;
+		reflection_probe_fbo->unbind();
+	}
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+	tex->generateMipmaps();
 }
