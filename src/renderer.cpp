@@ -115,6 +115,7 @@ void GTR::Renderer::renderForward(Camera* camera, GTR::Scene* scene) {
 	if(show_probes)
 		for(int i = 0; i < probes.size(); i++)
 			renderProbe(probes[i].pos, 2, probes[i].sh.coeffs[0].v);
+	
 }
 
 void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
@@ -338,174 +339,6 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	if (show_ssao) {
 		ssao_fbo->color_textures[0]->toViewport();
 	}
-}
-
-void GTR::Renderer::placeAndGenerateProbes(GTR::Scene* scene){
-	start_irr.set(-300, 5, -400);
-	end_irr.set(300, 150, 400);
-	dim_irr.set(10, 4, 10);
-	delta = (end_irr - start_irr);
-	
-	probes.clear();
-
-	delta.x /= (dim_irr.x - 1);
-	delta.y /= (dim_irr.y - 1);
-	delta.z /= (dim_irr.z - 1);
-	for (int z = 0; z < dim_irr.z; ++z) {
-		for (int y = 0; y < dim_irr.y; ++y) {
-			for (int x = 0; x < dim_irr.x; ++x) {
-				sProbe p;
-				p.local.set(x, y, z);
-
-				//index in the linear array
-				p.index = x + y * dim_irr.x + z * dim_irr.x * dim_irr.y;
-
-				//and its position
-				p.pos = start_irr + delta * Vector3(x, y, z);
-				probes.push_back(p);
-			}
-		}
-	}
-	cout << endl;
-	for (int iP = 0; iP < probes.size(); ++iP){
-		int probe_index = iP;
-		captureProbe(probes[iP], scene);
-		cout << "Generating Probes: " << iP << "/" << probes.size() << "\r";
-	}
-	cout << endl;
-	cout << "DONE" << endl;
-
-	uploadProbesToGPU();
-
-	// saveIrradianceToDisk ---------------------------------
-
-	//fill header structure
-	sIrrHeader header;
-
-	header.start = start_irr;
-	header.end = end_irr;
-	header.dims = dim_irr;
-	header.delta = delta;
-	header.num_probes = dim_irr.x * dim_irr.y * dim_irr.z;
-
-	//write to file header and probes data
-	FILE* f = fopen("irradiance.bin", "wb");
-	fwrite(&header, sizeof(header), 1, f);
-	fwrite(&(probes[0]), sizeof(sProbe), probes.size(), f);
-	fclose(f);
-}
-
-bool Renderer::loadProbes() {
-	//load probes info from disk
-	FILE* f = fopen("irradiance.bin", "rb");
-	if (!f)
-		return false;
-
-	//read header
-	sIrrHeader header;
-	fread(&header, sizeof(header), 1, f);
-
-	//copy info from header to our local vars
-	start_irr = header.start;
-	end_irr = header.end;
-	dim_irr = header.dims;
-	delta = header.delta;
-	int num_probes = header.num_probes;
-
-	//allocate space for the probes
-	probes.resize(num_probes);
-
-	//read from disk directly to our probes container in memory
-	fread(&probes[0], sizeof(sProbe), probes.size(), f);
-	fclose(f);
-
-	uploadProbesToGPU();
-}
-
-void GTR::Renderer::uploadProbesToGPU(){
-	//create the texture to store the probes (do this ONCE!!!)
-	if (probes_texture == NULL) {
-		delete probes_texture;
-	}
-	probes_texture = new Texture(
-		9, //9 coefficients per probe
-		probes.size(), //as many rows as probes
-		GL_RGB, //3 channels per coefficient
-		GL_FLOAT); //they require a high range
-
-	SphericalHarmonics* sh_data = NULL;
-	sh_data = new SphericalHarmonics[dim_irr.x * dim_irr.y * dim_irr.z];
-
-	//here we fill the data of the array with our probes in x,y,z order
-	for (int i = 0; i < probes.size(); ++i)
-		sh_data[i] = probes[i].sh;
-
-	//now upload the data to the GPU as a texture
-	probes_texture->upload(GL_RGB, GL_FLOAT, false, (uint8*)sh_data);
-
-	//disable any texture filtering when reading
-	probes_texture->bind();
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	//always free memory after allocating it!!!
-	delete[] sh_data;
-}
-
-void GTR::Renderer::renderProbe(Vector3 pos, float size, float* coeffs){
-	Camera* camera = Camera::current;
-	Shader* shader = Shader::Get("probe");
-	Mesh* mesh = Mesh::Get("data/meshes/sphere.obj", false, false);
-
-	glEnable(GL_CULL_FACE);
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-
-	Matrix44 model;
-	model.setTranslation(pos.x, pos.y, pos.z);
-	model.scale(size, size, size);
-
-	shader->enable();
-	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
-	shader->setUniform("u_camera_position", camera->eye);
-	shader->setUniform("u_model", model);
-	shader->setUniform3Array("u_coeffs", coeffs, 9);
-
-	mesh->render(GL_TRIANGLES);
-}
-
-void GTR::Renderer::captureProbe(sProbe& probe, GTR::Scene* scene){
-	FloatImage images[6]; //here we will store the six views
-	Camera camera;
-
-	if (irr_fbo == NULL) {
-		irr_fbo = new FBO();
-		irr_fbo->create(64, 64, 1, GL_RGB, GL_FLOAT);
-	}
-	//set the fov to 90 and the aspect to 1
-	camera.setPerspective(90, 1, 0.1, 1000);
-
-	for (int i = 0; i < 6; ++i) //for every cubemap face
-	{
-		//compute camera orientation using defined vectors
-		Vector3 eye = probe.pos;
-		Vector3 front = cubemapFaceNormals[i][2];
-		Vector3 center = probe.pos + front;
-		Vector3 up = cubemapFaceNormals[i][1];
-		camera.lookAt(eye, center, up);
-		camera.enable();
-
-		//render the scene from this point of view
-		irr_fbo->bind();
-		renderForward(&camera, scene);
-		irr_fbo->unbind();
-
-		//read the pixels back and store in a FloatImage
-		images[i].fromTexture(irr_fbo->color_textures[0]);
-	}
-
-	//compute the coefficients given the six images
-	probe.sh = computeSH(images);
 }
 
 void Renderer::renderScene(GTR::Scene* scene, Camera* camera){
@@ -1065,7 +898,7 @@ void GTR::Renderer::uploadUniformsAndTextures(Shader* shader, GTR::Material* mat
 		shader->setUniform("u_emissive_factor", emissive_factor);
 	}
 	else {
-		shader->setUniform("u_emissive_factor", Vector3());
+		shader->setUniform("u_emissive_factor", emissive_factor);
 	}
 	if (occlusion_texture)
 		shader->setUniform("u_occlusion_texture", occlusion_texture, 2);
@@ -1084,6 +917,174 @@ void GTR::Renderer::uploadUniformsAndTextures(Shader* shader, GTR::Material* mat
 
 	//this is used to say which is the alpha threshold to what we should not paint a pixel on the screen (to cut polygons according to texture alpha)
 	shader->setUniform("u_alpha_cutoff", material->alpha_mode == GTR::eAlphaMode::MASK ? material->alpha_cutoff : 0);
+}
+//Probes
+void GTR::Renderer::placeAndGenerateProbes(GTR::Scene* scene) {
+	start_irr.set(-300, 5, -400);
+	end_irr.set(300, 150, 400);
+	dim_irr.set(10, 4, 10);
+	delta = (end_irr - start_irr);
+
+	probes.clear();
+
+	delta.x /= (dim_irr.x - 1);
+	delta.y /= (dim_irr.y - 1);
+	delta.z /= (dim_irr.z - 1);
+	for (int z = 0; z < dim_irr.z; ++z) {
+		for (int y = 0; y < dim_irr.y; ++y) {
+			for (int x = 0; x < dim_irr.x; ++x) {
+				sProbe p;
+				p.local.set(x, y, z);
+
+				//index in the linear array
+				p.index = x + y * dim_irr.x + z * dim_irr.x * dim_irr.y;
+
+				//and its position
+				p.pos = start_irr + delta * Vector3(x, y, z);
+				probes.push_back(p);
+			}
+		}
+	}
+	cout << endl;
+	for (int iP = 0; iP < probes.size(); ++iP) {
+		int probe_index = iP;
+		captureProbe(probes[iP], scene);
+		cout << "Generating Probes: " << iP << "/" << probes.size() << "\r";
+	}
+	cout << endl;
+	cout << "DONE" << endl;
+
+	uploadProbesToGPU();
+
+	// saveIrradianceToDisk ---------------------------------
+
+	//fill header structure
+	sIrrHeader header;
+
+	header.start = start_irr;
+	header.end = end_irr;
+	header.dims = dim_irr;
+	header.delta = delta;
+	header.num_probes = dim_irr.x * dim_irr.y * dim_irr.z;
+
+	//write to file header and probes data
+	FILE* f = fopen("irradiance.bin", "wb");
+	fwrite(&header, sizeof(header), 1, f);
+	fwrite(&(probes[0]), sizeof(sProbe), probes.size(), f);
+	fclose(f);
+}
+
+bool Renderer::loadProbes() {
+	//load probes info from disk
+	FILE* f = fopen("irradiance.bin", "rb");
+	if (!f)
+		return false;
+
+	//read header
+	sIrrHeader header;
+	fread(&header, sizeof(header), 1, f);
+
+	//copy info from header to our local vars
+	start_irr = header.start;
+	end_irr = header.end;
+	dim_irr = header.dims;
+	delta = header.delta;
+	int num_probes = header.num_probes;
+
+	//allocate space for the probes
+	probes.resize(num_probes);
+
+	//read from disk directly to our probes container in memory
+	fread(&probes[0], sizeof(sProbe), probes.size(), f);
+	fclose(f);
+
+	uploadProbesToGPU();
+}
+
+void GTR::Renderer::uploadProbesToGPU() {
+	//create the texture to store the probes (do this ONCE!!!)
+	if (probes_texture == NULL) {
+		delete probes_texture;
+	}
+	probes_texture = new Texture(
+		9, //9 coefficients per probe
+		probes.size(), //as many rows as probes
+		GL_RGB, //3 channels per coefficient
+		GL_FLOAT); //they require a high range
+
+	SphericalHarmonics* sh_data = NULL;
+	sh_data = new SphericalHarmonics[dim_irr.x * dim_irr.y * dim_irr.z];
+
+	//here we fill the data of the array with our probes in x,y,z order
+	for (int i = 0; i < probes.size(); ++i)
+		sh_data[i] = probes[i].sh;
+
+	//now upload the data to the GPU as a texture
+	probes_texture->upload(GL_RGB, GL_FLOAT, false, (uint8*)sh_data);
+
+	//disable any texture filtering when reading
+	probes_texture->bind();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	//always free memory after allocating it!!!
+	delete[] sh_data;
+}
+
+void GTR::Renderer::renderProbe(Vector3 pos, float size, float* coeffs) {
+	Camera* camera = Camera::current;
+	Shader* shader = Shader::Get("probe");
+	Mesh* mesh = Mesh::Get("data/meshes/sphere.obj", false, false);
+
+	glEnable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+
+	Matrix44 model;
+	model.setTranslation(pos.x, pos.y, pos.z);
+	model.scale(size, size, size);
+
+	shader->enable();
+	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+	shader->setUniform("u_camera_position", camera->eye);
+	shader->setUniform("u_model", model);
+	shader->setUniform3Array("u_coeffs", coeffs, 9);
+
+	mesh->render(GL_TRIANGLES);
+}
+
+void GTR::Renderer::captureProbe(sProbe& probe, GTR::Scene* scene) {
+	FloatImage images[6]; //here we will store the six views
+	Camera camera;
+
+	if (irr_fbo == NULL) {
+		irr_fbo = new FBO();
+		irr_fbo->create(64, 64, 1, GL_RGB, GL_FLOAT);
+	}
+	//set the fov to 90 and the aspect to 1
+	camera.setPerspective(90, 1, 0.1, 1000);
+
+	for (int i = 0; i < 6; ++i) //for every cubemap face
+	{
+		//compute camera orientation using defined vectors
+		Vector3 eye = probe.pos;
+		Vector3 front = cubemapFaceNormals[i][2];
+		Vector3 center = probe.pos + front;
+		Vector3 up = cubemapFaceNormals[i][1];
+		camera.lookAt(eye, center, up);
+		camera.enable();
+
+		//render the scene from this point of view
+		irr_fbo->bind();
+		renderForward(&camera, scene);
+		irr_fbo->unbind();
+
+		//read the pixels back and store in a FloatImage
+		images[i].fromTexture(irr_fbo->color_textures[0]);
+	}
+
+	//compute the coefficients given the six images
+	probe.sh = computeSH(images);
 }
 
 void GTR::Renderer::renderReflectionProbes(GTR::Scene* scene, Camera* camera){

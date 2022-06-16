@@ -385,8 +385,16 @@ void main()
 	float occlusion_factor = occlusion * occlusion_metal;
 
 	vec3 light = vec3(u_ambient_light) * occlusion_factor;
+	
 	vec3 emissive_factor = texture(u_emissive_texture, v_uv).xyz;
-	emissive_factor *= u_emissive_factor;
+	if(emissive_factor == 0 && u_emissive_factor != 1){
+		emissive_factor = u_emissive_factor;
+	}
+	else{
+		emissive_factor *= u_emissive_factor;
+	}
+	/*vec3 emissive_factor = texture(u_emissive_texture, v_uv).xyz;
+	emissive_factor *= u_emissive_factor;*/
 
 	vec3 L;
 	for(int i = 0; i < MAX_LIGHTS; ++i){
@@ -486,8 +494,13 @@ void main()
 	color *= texture( u_texture, v_uv );
 
 	vec3 emissive_factor = texture(u_emissive_texture, v_uv).xyz;
-	emissive_factor *= u_emissive_factor;
-
+	if(emissive_factor == 0 && u_emissive_factor != 1){
+		emissive_factor = u_emissive_factor;
+	}
+	else{
+		emissive_factor *= u_emissive_factor;
+	}
+	
 	float occlusion = texture2D(u_occlusion_texture, v_uv).x;
 	float occlusion_metal = texture2D(u_metallic_texture, v_uv).x;
 	float occlusion_factor = occlusion * occlusion_metal;
@@ -586,7 +599,14 @@ void main() {
 		discard;
 	}
 
-	vec3 emissive = u_emissive_factor * texture(u_emissive_texture, v_uv).xyz;
+	vec3 emissive_factor = texture(u_emissive_texture, v_uv).xyz;
+	if(emissive_factor == 0 && u_emissive_factor != 1){
+		emissive_factor = u_emissive_factor;
+	}
+	else{
+		emissive_factor *= u_emissive_factor;
+	}
+	//vec3 emissive = u_emissive_factor * texture(u_emissive_texture, v_uv).xyz;
 
 	if (has_normal == 1) {
 		vec3 normal_pixel = texture2D(u_normal_texture, v_uv).xyz;
@@ -595,7 +615,7 @@ void main() {
 
 	GB0 = vec4(color.xyz, metallic_texture.x);
 	GB1 = vec4(N * 0.5 + vec3(0.5), roughness);
-	GB2 = vec4(emissive, metallic);
+	GB2 = vec4(emissive_factor, metallic);
 }
 
 \deferred.fs
@@ -1204,8 +1224,7 @@ out vec4 FragColor;
 
 void main()
 {
-	//vec3 V = normalize( u_camera_position - v_world_position );
-	vec3 V = v_world_position - u_camera_position;
+	vec3 V = normalize(u_camera_position - v_world_position);
 	FragColor = texture( u_texture, V );
 }
 
@@ -1222,8 +1241,7 @@ out vec4 FragColor;
 
 void main()
 {
-	//vec3 V = normalize( u_camera_position - v_world_position );
-	vec3 V = v_world_position - u_camera_position;
+	vec3 V = normalize(v_world_position - u_camera_position);
 	vec3 N = normalize(v_normal);
 	vec3 R = reflect(V, N);
 	FragColor = texture( u_texture, R );
