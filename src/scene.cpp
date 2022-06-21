@@ -125,17 +125,17 @@ bool GTR::Scene::load(const char* filename)
 	return true;
 }
 
-GTR::BaseEntity* GTR::Scene::createEntity(std::string type)
-{
+GTR::BaseEntity* GTR::Scene::createEntity(std::string type) {
 	if (type == "PREFAB")
 		return new GTR::PrefabEntity();
 	else if (type == "LIGHT")
 		return new GTR::LightEntity();
+	else if (type == "DECAL")
+		return new GTR::DecalEntity();
     return NULL;
 }
 
-void GTR::BaseEntity::renderInMenu()
-{
+void GTR::BaseEntity::renderInMenu() {
 #ifndef SKIP_IMGUI
 	ImGui::Text("Name: %s", name.c_str()); // Edit 3 floats representing a color
 	ImGui::Checkbox("Visible", &visible); // Edit 3 floats representing a color
@@ -233,15 +233,27 @@ void GTR::LightEntity::configure(cJSON* json)
 		light_type = eLightType::DIRECTIONAL;
 }
 
-GTR::ReflectionProbeEntity::ReflectionProbeEntity(){
+GTR::ReflectionProbeEntity::ReflectionProbeEntity() {
 	entity_type = REFLECTION_PROBE;
 	texture = NULL;
 }
 
-void GTR::ReflectionProbeEntity::renderInMenu()
-{
+void GTR::ReflectionProbeEntity::renderInMenu() {
 }
 
-void GTR::ReflectionProbeEntity::configure(cJSON* json)
-{
+void GTR::ReflectionProbeEntity::configure(cJSON* json) {
+}
+
+GTR::DecalEntity::DecalEntity() {
+	entity_type = DECALL;
+}
+
+void GTR::DecalEntity::renderInMenu() {
+
+}
+
+void GTR::DecalEntity::configure(cJSON* json) {
+	if (cJSON_GetObjectItem(json, "texture")) {
+		texture = cJSON_GetObjectItem(json, "texture")->valuestring;
+	}
 }

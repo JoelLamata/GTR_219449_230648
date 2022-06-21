@@ -118,7 +118,7 @@ public:
 	void createQuad(float center_x, float center_y, float w, float h, bool flip_uvs);
 	void createPlane(float size);
 	void createSubdividedPlane(float size = 1, int subdivisions = 256, bool centered = false);
-	void createCube(Vector3 size);
+	void createCube();
 	void createWireBox();
 	void createGrid(float dist);
 	void displace(Image* heightmap, float altitude);

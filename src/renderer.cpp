@@ -40,7 +40,10 @@ GTR::Renderer::Renderer() {
 	is_rendering_reflections = false;
 	random_points = generateSpherePoints(64, 1, true);
 	skybox = CubemapFromHDRE("data/panorama.hdre");
-	
+	cloned_depth_texture = NULL;
+	decal_fbo = NULL;
+	cube.createCube();
+
 	//create the probe
 	sReflectionProbe* probe = new sReflectionProbe;
 
@@ -154,6 +157,14 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 		ssao_blur = new Texture();
 		ssao_blur->create(width, height);
 	}
+	if (!decal_fbo) {
+		decal_fbo = new FBO();
+		decal_fbo->create(width, height,
+			3,			//one texture
+			GL_RGBA,			//three channels
+			GL_UNSIGNED_BYTE,	//1 byte
+			true);		//add depth_texture
+	}
 
 	Mesh* quad = Mesh::getQuad();
 	Mesh* sphere = Mesh::Get("data/meshes/sphere.obj", false, false);
@@ -178,7 +189,52 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	}
 
 	gbuffers_fbo->unbind();
+	
+	gbuffers_fbo->color_textures[0]->copyTo(decal_fbo->color_textures[0]);
+	gbuffers_fbo->color_textures[1]->copyTo(decal_fbo->color_textures[1]);
+	gbuffers_fbo->color_textures[2]->copyTo(decal_fbo->color_textures[2]);
 
+	/*if (!cloned_depth_texture) {
+		cloned_depth_texture = new Texture();
+	}
+
+	gbuffers_fbo->depth_texture->copyTo(cloned_depth_texture);*/
+	decal_fbo->bind();
+	gbuffers_fbo->depth_texture->copyTo(NULL);
+	decal_fbo->unbind();
+
+	if (decals.size()) {
+		gbuffers_fbo->bind();
+
+		Shader* shader = Shader::Get("decal");
+		shader->enable();
+		shader->setUniform("u_depth_texture", decal_fbo->depth_texture, 4);
+		shader->setUniform("u_inverse_viewprojection", inv_vp);
+		shader->setUniform("u_iRes", Vector2(1.0 / (float)width, 1.0 / (float)height));
+		shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glColorMask(true, true, true, false);
+
+		for (int i = 0; i < decals.size(); i++) {
+			DecalEntity* decal = decals[i];
+			shader->setUniform("u_model", decal->model);
+			Matrix44 inv_decal_model = decal->model;
+			inv_decal_model.inverse();
+			shader->setUniform("u_imodel", inv_decal_model);
+			Texture* decal_texture = Texture::Get(decal->texture.c_str());
+			if (!decal_texture) continue;
+			shader->setUniform("u_texture", decal_texture, 5);
+			cube.render(GL_TRIANGLES);
+		}
+
+		glColorMask(true, true, true, true);
+		glDisable(GL_BLEND);
+		gbuffers_fbo->unbind();
+	}
+	
 	ssao_fbo->bind();
 
 	glDisable(GL_DEPTH_TEST);
@@ -344,6 +400,7 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 void Renderer::renderScene(GTR::Scene* scene, Camera* camera){
 	lights.clear();
 	render_calls.clear();
+	decals.clear();
 
 	//render entities
 	//first store the lights, they are needed before rendering anything
@@ -356,6 +413,18 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera){
 		{
 			LightEntity* light = (GTR::LightEntity*)ent;
 			lights.push_back(light);
+		}
+	}
+
+	for (int i = 0; i < scene->entities.size(); ++i) {
+		BaseEntity* ent = scene->entities[i];
+		if (!ent->visible)
+			continue;
+		//is a decal!
+		if (ent->entity_type == DECALL)
+		{
+			DecalEntity* decal = (GTR::DecalEntity*)ent;
+			decals.push_back(decal);
 		}
 	}
 
