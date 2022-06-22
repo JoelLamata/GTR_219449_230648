@@ -37,6 +37,8 @@ GTR::Renderer::Renderer() {
 	show_probes = false;
 	show_probes_texture = false;
 	show_irradiance = false;
+	show_reflections = false;
+	show_decal = false;
 	is_rendering_reflections = false;
 	random_points = generateSpherePoints(64, 1, true);
 	skybox = CubemapFromHDRE("data/panorama.hdre");
@@ -203,7 +205,7 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	gbuffers_fbo->depth_texture->copyTo(NULL);
 	decal_fbo->unbind();
 
-	if (decals.size()) {
+	if (decals.size() && show_decal) {
 		gbuffers_fbo->bind();
 
 		Shader* shader = Shader::Get("decal");
@@ -340,6 +342,10 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 			shader->setUniform("u_emissive_factor", Vector3());
 		}
 	}
+	
+	glDisable(GL_CULL_FACE);
+	glFrontFace(GL_CCW);
+
 	if (probes_texture && show_irradiance) {
 		shader = Shader::Get("irradiance");
 		shader->enable();
@@ -355,9 +361,6 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 		quad->render(GL_TRIANGLES);
 	}
-	
-	glDisable(GL_CULL_FACE);
-	glFrontFace(GL_CCW);
 
 	// To enable the z-buffer so the grid does not appear over the objects
 	glEnable(GL_DEPTH_TEST);
@@ -1018,7 +1021,7 @@ void GTR::Renderer::placeAndGenerateProbes(GTR::Scene* scene) {
 	for (int iP = 0; iP < probes.size(); ++iP) {
 		int probe_index = iP;
 		captureProbe(probes[iP], scene);
-		cout << "Generating Probes: " << iP << "/" << probes.size() << "\r";
+		cout << "Generating Probes: " << iP+1 << "/" << probes.size() << "\r";
 	}
 	cout << endl;
 	cout << "DONE" << endl;

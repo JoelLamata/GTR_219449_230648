@@ -189,6 +189,14 @@ const float CosineA2 = Pi * 0.25;
 struct SH9 { float c[9]; }; //to store weights
 struct SH9Color { vec3 c[9]; }; //to store colors
 
+uniform vec3 u_irr_start;
+uniform vec3 u_irr_end;
+uniform vec3 u_irr_dims;
+uniform float u_irr_normal_distance;
+uniform vec3 u_irr_delta;
+uniform float u_num_probes;
+uniform sampler2D u_probes_texture;
+
 void SHCosineLobe(in vec3 dir, out SH9 sh) //SH9
 {
 	// Band 0
@@ -217,6 +225,29 @@ vec3 ComputeSHIrradiance(in vec3 normal, in SH9Color sh)
 
 	return irradiance;
 }
+
+vec3 computeIrr(in vec3 local_indices, in vec3 N){
+	SH9Color sh;
+	
+	//compute in which row is the probe stored
+	float row = local_indices.x + local_indices.y * u_irr_dims.x + local_indices.z * u_irr_dims.x * u_irr_dims.y;
+
+	//find the UV.y coord of that row in the probes texture
+	float row_uv = (row + 1.0) / (u_num_probes + 1.0);
+
+	//fill the coefficients
+	const float d_uvx = 1.0 / 9.0;
+	for(int i = 0; i < 9; ++i)
+	{
+		vec2 coeffs_uv = vec2( (float(i)+0.5) * d_uvx, row_uv );
+		sh.c[i] = texture( u_probes_texture, coeffs_uv).xyz;
+	}
+
+	vec3 irradiance = ComputeSHIrradiance(N, sh);
+	return irradiance;
+}
+	
+
 
 \reflections
 uniform bool u_has_reflections;
@@ -1156,14 +1187,6 @@ uniform vec3 u_points[64];
 
 uniform vec3 u_coeffs[9];
 
-uniform vec3 u_irr_start;
-uniform vec3 u_irr_end;
-uniform vec3 u_irr_dims;
-uniform float u_irr_normal_distance;
-uniform vec3 u_irr_delta;
-uniform float u_num_probes;
-uniform sampler2D u_probes_texture;
-
 out vec4 FragColor;
 
 #include "irradiance_func"
@@ -1171,8 +1194,7 @@ out vec4 FragColor;
 void main()
 {
 	vec2 uv = gl_FragCoord.xy * u_iRes.xy; 
-	SH9Color sh;
-
+	
 	vec4 gb0_color = texture(u_gb0_texture, uv);
 	vec4 gb1_color = texture(u_gb1_texture, uv);
 	vec4 gb2_color = texture(u_gb2_texture, uv);
@@ -1190,24 +1212,53 @@ void main()
 	//convert from world pos to grid pos
 	vec3 irr_norm_pos = irr_local_pos / u_irr_delta;
 
-	//round values as we cannot fetch between rows for now
-	vec3 local_indices = round(irr_norm_pos);
+	//floor instead of round
+	vec3 local_indices = floor(irr_norm_pos);
 
-	//compute in which row is the probe stored
-	float row = local_indices.x + local_indices.y * u_irr_dims.x + local_indices.z * u_irr_dims.x * u_irr_dims.y;
+	//now we have the interpolation factors
+	vec3 factors = irr_norm_pos - local_indices;
 
-	//find the UV.y coord of that row in the probes texture
-	float row_uv = (row + 1.0) / (u_num_probes + 1.0);
+	//local_indices points to Left,Bottom,Far
+	vec3 indicesLBF = local_indices;
+	vec3 indicesRBF = local_indices;
+	indicesRBF.x += 1; //from left to right
+	vec3 indicesLTF = local_indices;
+	indicesLTF.y +=1;
+	vec3 indicesRTF = local_indices;
+	indicesRTF.x += 1;
+	indicesRTF.y += 1;
+	vec3 indicesLBN = local_indices;
+	indicesLBN.z += 1;
+	vec3 indicesRBN = local_indices;
+	indicesRBN.x += 1;
+	indicesRBN.z += 1;
+	vec3 indicesLTN = local_indices;
+	indicesLTN.y += 1;
+	indicesLTN.z += 1;
+	vec3 indicesRTN = local_indices;
+	indicesRTN.x += 1;
+	indicesRTN.y += 1;
+	indicesRTN.z += 1;
+	
+	//compute irradiance for every corner
+	vec3 irrLBF = computeIrr( indicesLBF, N );
+	vec3 irrRBF = computeIrr( indicesRBF, N );
+	vec3 irrLTF = computeIrr( indicesLTF, N );
+	vec3 irrRTF = computeIrr( indicesRTF, N );
+	vec3 irrLBN = computeIrr( indicesLBN, N );
+	vec3 irrRBN = computeIrr( indicesRBN, N );
+	vec3 irrLTN = computeIrr( indicesLTN, N );
+	vec3 irrRTN = computeIrr( indicesRTN, N );
 
-	//fill the coefficients
-	const float d_uvx = 1.0 / 9.0;
-	for(int i = 0; i < 9; ++i)
-	{
-		vec2 coeffs_uv = vec2( (float(i)+0.5) * d_uvx, row_uv );
-		sh.c[i] = texture( u_probes_texture, coeffs_uv).xyz;
-	}
+	vec3 irrTF = mix( irrLTF, irrRTF, factors.x );
+	vec3 irrBF = mix( irrLBF, irrRBF, factors.x );
+	vec3 irrTN = mix( irrLTN, irrRTN, factors.x );
+	vec3 irrBN = mix( irrLBN, irrRBN, factors.x );
 
-	vec3 irradiance = ComputeSHIrradiance(N, sh);
+	vec3 irrT = mix( irrTF, irrTN, factors.z );
+	vec3 irrB = mix( irrBF, irrBN, factors.z );
+
+	vec3 irradiance = mix( irrB, irrT, factors.y );
 	vec3 color = texture(u_gb0_texture, uv).xyz * irradiance;
 	FragColor = vec4(color, 1.0);
 }

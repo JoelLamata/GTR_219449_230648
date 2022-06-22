@@ -105,6 +105,7 @@ namespace GTR {
 		bool show_probes_texture;
 		bool show_irradiance;
 		bool show_reflections;
+		bool show_decal;
 		bool is_rendering_reflections;
 		vector<Vector3> random_points;
 		Vector3 start_irr;

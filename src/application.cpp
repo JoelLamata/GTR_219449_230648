@@ -262,6 +262,7 @@ void Application::renderDebugGUI(void)
 	ImGui::Combo("Dynamic range", (int*)&renderer->dynamicRange, "SDR\0HDR", 2);
 	ImGui::Checkbox("Show Irradiance", &renderer->show_irradiance);
 	ImGui::Checkbox("Show Reflections", &renderer->show_reflections);
+	ImGui::Checkbox("Show Decal", &renderer->show_decal);
 
 	//add info to the debug panel about the camera
 	if (ImGui::TreeNode(camera, "Camera")) {
