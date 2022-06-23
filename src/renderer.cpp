@@ -45,6 +45,8 @@ GTR::Renderer::Renderer() {
 	cloned_depth_texture = NULL;
 	decal_fbo = NULL;
 	cube.createCube();
+	postFX_textureA = NULL;
+	postFX_textureB = NULL;
 
 	//create the probe
 	sReflectionProbe* probe = new sReflectionProbe;
@@ -166,6 +168,12 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 			GL_RGBA,			//three channels
 			GL_UNSIGNED_BYTE,	//1 byte
 			true);		//add depth_texture
+	}
+	if (!postFX_textureA) {
+		postFX_textureA = new Texture(width, height, GL_RGB, GL_FLOAT, false);
+	}
+	if (!postFX_textureB) {
+		postFX_textureB = new Texture(width, height, GL_RGB, GL_FLOAT, false);
 	}
 
 	Mesh* quad = Mesh::getQuad();
@@ -373,10 +381,8 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	}
 
 	illumination_fbo->unbind();
-	glDisable(GL_BLEND);
-	Shader* shader_tm = Shader::Get("tonemapper");
-	shader_tm->enable();
-	illumination_fbo->color_textures[0]->toViewport(shader_tm);
+
+	applyfx(illumination_fbo->color_textures[0], gbuffers_fbo->depth_texture, camera);
 
 	if (show_gbuffers) {
 		glViewport(0, height * 0.5, width * 0.5, height * 0.5);
@@ -1218,4 +1224,57 @@ void GTR::Renderer::captureReflectionProbe(GTR::Scene* scene, Texture* tex, Vect
 	}
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	tex->generateMipmaps();
+}
+
+void GTR::Renderer::applyfx(Texture* color, Texture* depth, Camera* camera) {
+	Texture* current_texture = color;
+	int width = Application::instance->window_width;
+	int height = Application::instance->window_height;
+	Matrix44 inv_vp = camera->viewprojection_matrix;
+	inv_vp.inverse();
+
+	//Chromatic aberration and lens distortion
+	FBO* ch_fbo = Texture::getGlobalFBO(postFX_textureA);
+	ch_fbo->bind();
+	Shader* ch_shader = Shader::Get("chrab_lensdist");
+	ch_shader->enable();
+	ch_shader->setUniform("resolution", Vector2((float)width, (float)height));
+	current_texture->toViewport(ch_shader);
+	ch_shader->disable();
+	ch_fbo->unbind();
+	current_texture = postFX_textureA;
+	swap(postFX_textureA, postFX_textureB);
+
+	//Motion blur
+	FBO* mot_fbo = Texture::getGlobalFBO(postFX_textureA);
+	mot_fbo->bind();
+	Shader* mot_shader = Shader::Get("motionblur");
+	mot_shader->enable();
+	mot_shader->setUniform("u_depth_texture", depth, 1);
+	mot_shader->setUniform("u_inverse_viewprojection", inv_vp);
+	mot_shader->setUniform("u_viewprojection_old", viewproj_old);
+	current_texture->toViewport(mot_shader);
+	mot_shader->disable();
+	mot_fbo->unbind();
+	current_texture = postFX_textureA;
+	swap(postFX_textureA, postFX_textureB);
+	viewproj_old = camera->viewprojection_matrix;
+
+	//Antialiasing
+	FBO* al_fbo = Texture::getGlobalFBO(postFX_textureA);
+	al_fbo->bind();
+	Shader* al_shader = Shader::Get("antialiasing");
+	al_shader->enable();
+	al_shader->setUniform("u_viewportSize", Vector2((float)width, (float)height));
+	al_shader->setUniform("u_iViewportSize", Vector2(1.0/(float)width, 1.0/(float)height));
+	current_texture->toViewport(al_shader);
+	al_shader->disable();
+	al_fbo->unbind();
+	current_texture = postFX_textureA;
+	swap(postFX_textureA, postFX_textureB);
+
+	glDisable(GL_BLEND);
+	Shader* shader_tm = Shader::Get("tonemapper");
+	shader_tm->enable();
+	current_texture->toViewport(shader_tm);
 }

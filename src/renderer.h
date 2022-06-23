@@ -98,6 +98,8 @@ namespace GTR {
 		FBO* decal_fbo;
 		Texture* ssao_blur;
 		Texture* probes_texture;
+		Texture* postFX_textureA;
+		Texture* postFX_textureB;
 		bool multipass;
 		bool show_gbuffers;
 		bool show_ssao;
@@ -117,6 +119,7 @@ namespace GTR {
 		Texture* skybox;
 		Texture* cloned_depth_texture;
 		Mesh cube;
+		Matrix44 viewproj_old;
 
 		Renderer();
 		//add here your functions
@@ -156,6 +159,8 @@ namespace GTR {
 		void showShadowmap(LightEntity* light);
 
 		void uploadUniformsAndTextures(Shader* shader, GTR::Material* material, Camera* camera, const Matrix44 model);
+
+		void applyfx(Texture* color, Texture* depth, Camera* camera);
 	};
 
 	vector<Vector3> generateSpherePoints(int num, float radius, bool hemi);
