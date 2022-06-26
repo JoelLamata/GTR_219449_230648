@@ -109,6 +109,10 @@ namespace GTR {
 		bool show_reflections;
 		bool show_decal;
 		bool is_rendering_reflections;
+		bool show_chrab_lensdist;
+		bool show_motblur;
+		bool show_antial;
+		bool show_DoF;
 		vector<Vector3> random_points;
 		Vector3 start_irr;
 		Vector3 end_irr;
@@ -118,8 +122,10 @@ namespace GTR {
 		vector<sReflectionProbe*> reflection_probes;
 		Texture* skybox;
 		Texture* cloned_depth_texture;
+		Texture* blur;
 		Mesh cube;
 		Matrix44 viewproj_old;
+		float deb_fac;
 
 		Renderer();
 		//add here your functions
