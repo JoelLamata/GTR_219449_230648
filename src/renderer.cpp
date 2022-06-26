@@ -54,15 +54,27 @@ GTR::Renderer::Renderer() {
 	blur = NULL;
 	deb_fac = 1.0;
 
+	loadProbes();
+
 	//create the probe
 	sReflectionProbe* probe = new sReflectionProbe;
-
 	//set it up
 	probe->pos.set(90, 56, -72);
 	probe->cubemap = new Texture();
 	probe->cubemap->createCubemap(512, 512, NULL, GL_RGB, GL_UNSIGNED_INT, true);
-
 	//add it to the list
+	reflection_probes.push_back(probe);
+
+	probe = new sReflectionProbe;
+	probe->pos.set(90, 56, 128);
+	probe->cubemap = new Texture();
+	probe->cubemap->createCubemap(512, 512, NULL, GL_RGB, GL_UNSIGNED_INT, true);
+	reflection_probes.push_back(probe);
+
+	probe = new sReflectionProbe;
+	probe->pos.set(90, 56, 328);
+	probe->cubemap = new Texture();
+	probe->cubemap->createCubemap(512, 512, NULL, GL_RGB, GL_UNSIGNED_INT, true);
 	reflection_probes.push_back(probe);
 }
 
@@ -479,18 +491,20 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera){
 			flipped_camera.setPerspective(camera->fov, camera->aspect, camera->near_plane, camera->far_plane);
 			flipped_camera.enable();
 			is_rendering_reflections = true;
-			renderForward(camera, scene);
+			renderForward(&flipped_camera, scene);
 			is_rendering_reflections = false;
 			reflection_fbo->unbind();
 			camera->enable();
 		}
 		renderForward(camera, scene);
-		renderReflectionProbes(scene, camera);
-
+		//renderReflectionProbes(scene, camera);
 	}
 	else if (pipeline == DEFERRED) {
 		renderDeferred(camera, scene);
 	}
+
+	//if(reflection_probes.size() == 0)
+		//updateReflectionProbes(scene);
 
 	if (probes_texture && show_probes_texture)
 		probes_texture->toViewport();
@@ -942,7 +956,7 @@ void GTR::Renderer::uploadLightToShaderDeferred(Shader* shader, Matrix44 inv_vp,
 }
 
 
-void GTR::Renderer::uploadUniformsAndTextures(Shader* shader, GTR::Material* material, Camera* camera, const Matrix44 model) {
+void GTR::Renderer::uploadUniformsAndTextures(Shader* shader, GTR::Material* material, Camera* camera, Matrix44 model) {
 	Texture* texture = NULL;
 	Texture* emissive_texture = NULL;
 	Texture* occlusion_texture = NULL;
@@ -1004,9 +1018,21 @@ void GTR::Renderer::uploadUniformsAndTextures(Shader* shader, GTR::Material* mat
 	//this is used to say which is the alpha threshold to what we should not paint a pixel on the screen (to cut polygons according to texture alpha)
 	shader->setUniform("u_alpha_cutoff", material->alpha_mode == GTR::eAlphaMode::MASK ? material->alpha_cutoff : 0);
 
-	if (!is_rendering_reflections) {
-		shader->setUniform("is_reflection", show_reflections);
-		shader->setUniform("u_reflection_texture", reflection_probes[0]->cubemap, 10);
+	if (!is_rendering_reflections && reflection_probes.size() > 0) {
+		sReflectionProbe* rprobe = reflection_probes[0];
+		Vector3 modelPos = model.getTranslation();
+		for (int i = 1; i < reflection_probes.size(); i++) {
+			sReflectionProbe* newrprobe = reflection_probes[i];
+			if (newrprobe->pos.distance(modelPos) < rprobe->pos.distance(modelPos)) {
+				rprobe = newrprobe;
+			}
+		}
+		if(!rprobe->cubemap)
+			shader->setUniform("is_reflection", 0);
+		else {
+			shader->setUniform("is_reflection", show_reflections);
+			shader->setUniform("u_reflection_texture", rprobe->cubemap, 10);
+		}
 	}
 	else {
 		shader->setUniform("is_reflection", 0);
@@ -1204,14 +1230,12 @@ void GTR::Renderer::renderReflectionProbes(GTR::Scene* scene, Camera* camera){
 }
 
 void GTR::Renderer::updateReflectionProbes(GTR::Scene* scene){
-
 	for (int i = 0; i < reflection_probes.size(); i++) {
 		sReflectionProbe* probe = reflection_probes[i];
 		if (!probe->cubemap) {
 			probe->cubemap = new Texture();
 			probe->cubemap->createCubemap(512, 512, NULL, GL_RGB, GL_UNSIGNED_INT, true);
 		}
-
 		captureReflectionProbe(scene, probe->cubemap, probe->pos);
 	}
 }
@@ -1293,7 +1317,7 @@ void GTR::Renderer::applyfx(Texture* color, Texture* depth, Camera* camera) {
 	}
 
 	//Blur
-	FBO* blur_fbo;
+	/*FBO* blur_fbo;
 	Shader* blur_shader;
 	for (int i = 0; i < 16; i++) {
 		blur_fbo = Texture::getGlobalFBO(postFX_textureA);
@@ -1316,7 +1340,7 @@ void GTR::Renderer::applyfx(Texture* color, Texture* depth, Camera* camera) {
 		blur_shader->disable();
 		blur_fbo->unbind();
 		current_texture = blur;
-	}
+	}*/
 
 	//Depth of Field
 	if (show_DoF == true) {
