@@ -54,11 +54,10 @@ GTR::Renderer::Renderer() {
 	//set it up
 	probe->pos.set(90, 56, -72);
 	probe->cubemap = new Texture();
-	probe->cubemap->createCubemap(512, 512,	NULL, GL_RGB, GL_UNSIGNED_INT, true);
+	probe->cubemap->createCubemap(512, 512, NULL, GL_RGB, GL_UNSIGNED_INT, true);
 
 	//add it to the list
 	reflection_probes.push_back(probe);
-
 }
 
 void GTR::Renderer::renderSkybox(Camera* camera){
@@ -218,7 +217,7 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 		Shader* shader = Shader::Get("decal");
 		shader->enable();
-		shader->setUniform("u_depth_texture", decal_fbo->depth_texture, 4);
+		shader->setUniform("u_depth_texture", decal_fbo->depth_texture, 6);
 		shader->setUniform("u_inverse_viewprojection", inv_vp);
 		shader->setUniform("u_iRes", Vector2(1.0 / (float)width, 1.0 / (float)height));
 		shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
@@ -236,7 +235,7 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 			shader->setUniform("u_imodel", inv_decal_model);
 			Texture* decal_texture = Texture::Get(decal->texture.c_str());
 			if (!decal_texture) continue;
-			shader->setUniform("u_texture", decal_texture, 5);
+			shader->setUniform("u_texture", decal_texture, 7);
 			cube.render(GL_TRIANGLES);
 		}
 
@@ -995,6 +994,14 @@ void GTR::Renderer::uploadUniformsAndTextures(Shader* shader, GTR::Material* mat
 
 	//this is used to say which is the alpha threshold to what we should not paint a pixel on the screen (to cut polygons according to texture alpha)
 	shader->setUniform("u_alpha_cutoff", material->alpha_mode == GTR::eAlphaMode::MASK ? material->alpha_cutoff : 0);
+
+	if (!is_rendering_reflections) {
+		shader->setUniform("is_reflection", show_reflections);
+		shader->setUniform("u_reflection_texture", reflection_probes[0]->cubemap, 10);
+	}
+	else {
+		shader->setUniform("is_reflection", 0);
+	}
 }
 //Probes
 void GTR::Renderer::placeAndGenerateProbes(GTR::Scene* scene) {
@@ -1171,17 +1178,16 @@ void GTR::Renderer::renderReflectionProbes(GTR::Scene* scene, Camera* camera){
 	shader->enable();
 	shader->setUniform("u_viewprojection", camera->viewprojection_matrix);
 	shader->setUniform("u_camera_position", camera->eye);
+	Matrix44 model;
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
-	for (int i = 0; i < scene->entities.size(); i++) {
-		BaseEntity* ent = scene->entities[i];
-		if (!ent->visible || ent->entity_type != eEntityType::REFLECTION_PROBE)
+	for (int i = 0; i < reflection_probes.size(); i++) {
+		sReflectionProbe* probe = reflection_probes[i];
+		if (!probe->cubemap)
 			continue;
-		ReflectionProbeEntity* probe = (ReflectionProbeEntity*)ent;
-		if (!probe->texture)
-			continue;
-		shader->setUniform("u_model", ent->model);
-		shader->setUniform("u_texture", probe->texture, 0);
+		model.setTranslation(probe->pos.x, probe->pos.y, probe->pos.z);
+		shader->setUniform("u_model", model);
+		shader->setUniform("u_texture", probe->cubemap, 0);
 
 		mesh->render(GL_TRIANGLES);
 	}
@@ -1189,17 +1195,15 @@ void GTR::Renderer::renderReflectionProbes(GTR::Scene* scene, Camera* camera){
 }
 
 void GTR::Renderer::updateReflectionProbes(GTR::Scene* scene){
-	for (int i = 0; i < scene->entities.size(); i++) {
-		BaseEntity* ent = scene->entities[i];
-		if (!ent->visible || ent->entity_type != eEntityType::REFLECTION_PROBE)
-			continue;
-		ReflectionProbeEntity* probe = (ReflectionProbeEntity*)ent;
-		if (!probe->texture) {
-			probe->texture = new Texture();
-			probe->texture->createCubemap(512, 512, NULL, GL_RGB, GL_UNSIGNED_INT, true);
+
+	for (int i = 0; i < reflection_probes.size(); i++) {
+		sReflectionProbe* probe = reflection_probes[i];
+		if (!probe->cubemap) {
+			probe->cubemap = new Texture();
+			probe->cubemap->createCubemap(512, 512, NULL, GL_RGB, GL_UNSIGNED_INT, true);
 		}
 
-		captureReflectionProbe(scene, probe->texture, probe->model.getTranslation());
+		captureReflectionProbe(scene, probe->cubemap, probe->pos);
 	}
 }
 
