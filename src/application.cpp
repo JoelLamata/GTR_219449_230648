@@ -267,6 +267,7 @@ void Application::renderDebugGUI(void)
 	ImGui::Checkbox("Show Motion Blur", &renderer->show_motblur);
 	ImGui::Checkbox("Show Antialiasing", &renderer->show_antial);
 	ImGui::Checkbox("Show Depth of Field", &renderer->show_DoF);
+	ImGui::SliderFloat("Factor", &renderer->deb_fac, 0.0, 5.0);
 
 	//add info to the debug panel about the camera
 	if (ImGui::TreeNode(camera, "Camera")) {

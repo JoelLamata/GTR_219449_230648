@@ -122,8 +122,10 @@ namespace GTR {
 		vector<sReflectionProbe*> reflection_probes;
 		Texture* skybox;
 		Texture* cloned_depth_texture;
+		Texture* blur;
 		Mesh cube;
 		Matrix44 viewproj_old;
+		float deb_fac;
 
 		Renderer();
 		//add here your functions
