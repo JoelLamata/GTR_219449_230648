@@ -21,7 +21,7 @@ chrab_lensdist quad.vs chrab_lensdist.fs
 motionblur quad.vs motionblur.fs
 antialiasing quad.vs antialiasing.fs
 depthoffield quad.vs depthoffield.fs
-blur quad.vs quad.fs
+blurreddof quad.vs blurreddof.fs
 
 \shadowmap
 //singlelight
@@ -1554,28 +1554,27 @@ uniform sampler2D u_texture;
 uniform sampler2D u_outoffocus_texture;
 uniform sampler2D u_depth_texture;
 uniform mat4 u_inverse_viewprojection;
+uniform float minDistance;
+uniform float maxDistance;
 
 out vec4 FragColor;
 
 void main() {
-    float minDistance = 1.0;
-    float maxDistance = 3.0;
-
     float depth = texture(u_depth_texture, v_uv).x;
     vec4 screen_pos = vec4(v_uv.x * 2.0 - 1.0, v_uv.y * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
     vec4 proj_worldpos = u_inverse_viewprojection * screen_pos;
     vec3 world_position = proj_worldpos.xyz / proj_worldpos.w;
 
     vec4 focusColor = texture(u_texture, v_uv);
-      vec4 outOfFocusColor = texture(u_outoffocus_texture, v_uv);
+    vec4 outOfFocusColor = texture(u_outoffocus_texture, v_uv);
 
-    float blur = smoothstep(minDistance, maxDistance, abs(world_position.y - depth));
+    float blur = smoothstep(minDistance, maxDistance, abs(world_position.x));
 
     FragColor = mix(focusColor, outOfFocusColor, blur);
 }
 
 
-\blur.fs
+\blurreddof.fs
 
 #version 330 core
 

@@ -53,6 +53,8 @@ GTR::Renderer::Renderer() {
 	postFX_textureB = NULL;
 	blur = NULL;
 	deb_fac = 1.0;
+	minDist = 1.0;
+	maxDist = 300.0;
 
 	loadProbes();
 
@@ -1270,6 +1272,52 @@ void GTR::Renderer::applyfx(Texture* color, Texture* depth, Camera* camera) {
 	Matrix44 inv_vp = camera->viewprojection_matrix;
 	inv_vp.inverse();
 
+	//Depth of Field
+	if (show_DoF == true) {
+		//Blur
+		FBO* blur_fbo;
+		Shader* blur_shader;
+		for (int i = 0; i < 16; i++) {
+			blur_fbo = Texture::getGlobalFBO(postFX_textureA);
+			blur_fbo->bind();
+			blur_shader = Shader::Get("blurreddof");
+			blur_shader->enable();
+			blur_shader->setUniform("u_offset", vec2(pow(1.0f, i) / current_texture->width, 0.0) * deb_fac);
+			blur_shader->setUniform("u_intensity", 1.0f);
+			current_texture->toViewport(blur_shader);
+			blur_shader->disable();
+			blur_fbo->unbind();
+
+			blur_fbo = Texture::getGlobalFBO(blur);
+			blur_fbo->bind();
+			blur_shader = Shader::Get("blurreddof");
+			blur_shader->enable();
+			blur_shader->setUniform("u_offset", vec2(0.0, pow(1.0f, i) / current_texture->height) * deb_fac);
+			blur_shader->setUniform("u_intensity", 1.0f);
+			postFX_textureA->toViewport(blur_shader);
+			blur_shader->disable();
+			blur_fbo->unbind();
+			current_texture = blur;
+		}
+		current_texture = color;
+
+		//Depth of Field
+		FBO* dof_fbo = Texture::getGlobalFBO(postFX_textureA);
+		dof_fbo->bind();
+		Shader* dof_shader = Shader::Get("depthoffield");
+		dof_shader->enable();
+		dof_shader->setUniform("u_outoffocus_texture", blur, 2);
+		dof_shader->setUniform("u_depth_texture", depth, 3);
+		dof_shader->setUniform("u_inverse_viewprojection", inv_vp);
+		dof_shader->setUniform("minDistance", minDist);
+		dof_shader->setUniform("maxDistance", maxDist);
+		current_texture->toViewport(dof_shader);
+		dof_shader->disable();
+		dof_fbo->unbind();
+		current_texture = postFX_textureA;
+		swap(postFX_textureA, postFX_textureB);
+	}
+
 	//Chromatic aberration and lens distortion
 	if (show_chrab_lensdist == true) {
 		FBO* ch_fbo = Texture::getGlobalFBO(postFX_textureA);
@@ -1312,48 +1360,6 @@ void GTR::Renderer::applyfx(Texture* color, Texture* depth, Camera* camera) {
 		current_texture->toViewport(al_shader);
 		al_shader->disable();
 		al_fbo->unbind();
-		current_texture = postFX_textureA;
-		swap(postFX_textureA, postFX_textureB);
-	}
-
-	//Blur
-	/*FBO* blur_fbo;
-	Shader* blur_shader;
-	for (int i = 0; i < 16; i++) {
-		blur_fbo = Texture::getGlobalFBO(postFX_textureA);
-		blur_fbo->bind();
-		blur_shader = Shader::Get("blur");
-		blur_shader->enable();
-		blur_shader->setUniform("u_offset", vec2(pow(1.0f, i) / current_texture->width, 0.0)*deb_fac);
-		blur_shader->setUniform("u_intensity", 1.0f);
-		current_texture->toViewport(blur_shader);
-		blur_shader->disable();
-		blur_fbo->unbind();
-
-		blur_fbo = Texture::getGlobalFBO(blur);
-		blur_fbo->bind();
-		blur_shader = Shader::Get("blur");
-		blur_shader->enable();
-		blur_shader->setUniform("u_offset", vec2(0.0, pow(1.0f, i) / current_texture->height)*deb_fac);
-		blur_shader->setUniform("u_intensity", 1.0f);
-		postFX_textureA->toViewport(blur_shader);
-		blur_shader->disable();
-		blur_fbo->unbind();
-		current_texture = blur;
-	}*/
-
-	//Depth of Field
-	if (show_DoF == true) {
-		FBO* dof_fbo = Texture::getGlobalFBO(postFX_textureA);
-		dof_fbo->bind();
-		Shader* dof_shader = Shader::Get("depthoffield");
-		dof_shader->enable();
-		dof_shader->setUniform("u_outoffocus_texture", blur, 2);
-		dof_shader->setUniform("u_depth_texture", depth, 3);
-		dof_shader->setUniform("u_inverse_viewprojection", inv_vp);
-		current_texture->toViewport(dof_shader);
-		dof_shader->disable();
-		dof_fbo->unbind();
 		current_texture = postFX_textureA;
 		swap(postFX_textureA, postFX_textureB);
 	}

@@ -126,6 +126,8 @@ namespace GTR {
 		Mesh cube;
 		Matrix44 viewproj_old;
 		float deb_fac;
+		float minDist;
+		float maxDist;
 
 		Renderer();
 		//add here your functions
