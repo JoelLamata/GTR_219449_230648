@@ -1,1 +1,138 @@
-﻿  visualstudio.vcxproj -> C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\framework.exe
+﻿  renderer.cpp
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\extra\cJSON.h(104,1): warning C4099: 'cJSON': nombre de tipo visto anteriormente usando 'class' ahora se ve usando 'struct'
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\extra\cJSON.h(103): message : vea la declaración de 'cJSON'
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(113,15): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(114,13): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(115,11): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(145,20): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(248,64): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(248,44): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(256,21): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(284,68): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(284,48): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(433,51): warning C4244: 'argumento': conversión de 'double' a 'GLsizei'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(433,37): warning C4244: 'argumento': conversión de 'double' a 'GLsizei'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(433,24): warning C4244: 'argumento': conversión de 'double' a 'GLint'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(435,61): warning C4244: 'argumento': conversión de 'double' a 'GLsizei'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(435,47): warning C4244: 'argumento': conversión de 'double' a 'GLsizei'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(435,34): warning C4244: 'argumento': conversión de 'double' a 'GLint'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(435,20): warning C4244: 'argumento': conversión de 'double' a 'GLint'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(437,40): warning C4244: 'argumento': conversión de 'double' a 'GLsizei'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(437,26): warning C4244: 'argumento': conversión de 'double' a 'GLsizei'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(439,50): warning C4244: 'argumento': conversión de 'double' a 'GLsizei'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(439,36): warning C4244: 'argumento': conversión de 'double' a 'GLsizei'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(439,20): warning C4244: 'argumento': conversión de 'double' a 'GLint'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(461,20): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(475,20): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(488,20): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(505,20): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(580,20): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(840,87): warning C4305: 'argumento': truncamiento de 'double' a 'float'
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(851,117): warning C4305: 'argumento': truncamiento de 'double' a 'float'
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(870,20): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(933,32): warning C4244: '=': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(978,63): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(978,43): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1001,10): warning C4244: 'inicializando': conversión de 'long' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1051,21): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1084,23): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1084,20): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1084,17): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1087,33): warning C4244: '=': conversión de 'float' a 'int'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1090,47): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1090,44): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1090,41): warning C4244: 'argumento': conversión de 'int' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1096,22): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1115,44): warning C4244: '=': conversión de 'float' a 'int'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1118,12): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1126,12): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1163,57): warning C4244: 'inicializando': conversión de 'float' a 'unsigned int'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1166,20): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1212,40): warning C4305: 'argumento': truncamiento de 'double' a 'float'
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1246,20): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1260,20): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1277,41): warning C4305: 'argumento': truncamiento de 'double' a 'float'
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1310,58): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1320,63): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1384,76): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1384,56): warning C4244: 'argumento': conversión de 'double' a 'float'; posible pérdida de datos
+     Creando biblioteca ..\..\framework.lib y objeto ..\..\framework.exp
+LINK : warning LNK4098: la biblioteca predeterminada'LIBCMT' entra en conflicto con otras bibliotecas; use la biblioteca /NODEFAULTLIB:biblioteca
+  Generando código
+  Previous IPDB and IOBJ mismatch, fall back to full compilation.
+C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\src\renderer.cpp(1149): warning C4715: 'GTR::Renderer::loadProbes': no todas las rutas de acceso de control devuelven un valor
+  All 4919 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Generación de código finalizada
+LINK : warning LNK4286: "___glewDeleteBuffers" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewLinkProgram" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewDeleteShader" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGenBuffers" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGetProgramInfoLog" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewDetachShader" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewUniformMatrix4fv" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewBlendEquationSeparate" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGenVertexArrays" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewBlendEquation" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewShaderSource" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewDeleteProgram" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewActiveTexture" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewAttachShader" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewBufferData" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGetUniformLocation" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewBlendFuncSeparate" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewDeleteVertexArrays" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGetProgramiv" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGetShaderInfoLog" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewUniform1i" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewCreateProgram" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewBindBuffer" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewCreateShader" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGetAttribLocation" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewCompileShader" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewGetShaderiv" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewDrawElementsBaseVertex" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewVertexAttribPointer" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewUseProgram" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewBindSampler" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewBindVertexArray" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+LINK : warning LNK4286: "___glewEnableVertexAttribArray" importa el símbolo "glew32s.lib(glew.obj)" definido en "imgui_impl_opengl3.obj"
+imgui.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+imgui.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+imgui.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+imgui.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+imgui.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+imgui.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+ImGuizmo.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+imgui_widgets.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+textparser.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+gltf_loader.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+gltf_loader.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+gltf_loader.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+prefab.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+texture.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+texture.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+texture.obj : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+* linker generated manifest res * : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+SDL2.lib(SDL2.dll) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+glew32s.lib(glew.obj) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+glew32s.lib(glew.obj) : warning LNK4099: no se encontró PDB 'vc120.pdb' con 'glew32s.lib(glew.obj)' o en 'C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\vc120.pdb'; se vinculará el objeto sin tener en cuenta información de depuración
+glew32s.lib(glew.obj) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+glew32s.lib(glew.obj) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+glew32s.lib(glew.obj) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+glew32s.lib(glew.obj) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+glew32s.lib(glew.obj) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+MSVCRT.lib(gs_support.obj) : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+LINK : warning LNK4020: un registro de tipo de 'c:\users\jlama\desktop\uni\3r trimestre\gràfics en temps real\gtr_framework\visualstudio\vs2015\release\vc142.pdb' está dañado; puede que algunos símbolos y tipos no sean accesibles desde el depurador
+  visualstudio.vcxproj -> C:\Users\jlama\Desktop\Uni\3r Trimestre\Gràfics en temps real\GTR_Framework\framework.exe

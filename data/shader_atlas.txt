@@ -22,6 +22,7 @@ motionblur quad.vs motionblur.fs
 antialiasing quad.vs antialiasing.fs
 depthoffield quad.vs depthoffield.fs
 blurreddof quad.vs blurreddof.fs
+volumetric quad.vs volumetric.fs
 
 \shadowmap
 //singlelight
@@ -250,16 +251,6 @@ vec3 computeIrr(in vec3 local_indices, in vec3 N){
 
 	vec3 irradiance = ComputeSHIrradiance(N, sh);
 	return irradiance;
-}
-	
-
-
-\reflections
-uniform bool u_has_reflections;
-uniform sample2D u_reflections_texture;
-
-vec4 reflect(){
-	
 }
 
 \basic.vs
@@ -1263,6 +1254,8 @@ void main()
 	vec4 gb2_color = texture(u_gb2_texture, uv);
 
 	float depth = texture(u_depth_texture, uv).x;
+	if(depth >= 1.0)
+		discard;
 	vec4 screen_pos = vec4(uv.x*2.0 - 1.0, uv.y*2.0 - 1.0, depth*2.0 - 1.0, 1.0);
 	vec4 proj_worldpos = u_inverse_viewprojection * screen_pos;
 	vec3 worldpos = proj_worldpos.xyz / proj_worldpos.w;
@@ -1602,3 +1595,86 @@ void main() {
    
    FragColor = u_intensity * sum;
 }
+
+\volumetric.fs
+
+#version 330 core
+
+in vec2 v_uv;
+
+uniform sampler2D u_depth_texture;
+uniform vec3 u_camera_pos;
+
+uniform mat4 u_viewprojection;
+uniform mat4 u_inverse_viewprojection;
+uniform vec2 u_iRes;
+
+uniform vec3 u_ambient_light;
+uniform vec3 u_light_color;
+uniform vec3 u_light_position;
+uniform float u_light_max_distance;
+uniform int u_light_type;
+uniform vec3 u_light_direction;
+
+uniform float u_air_density;
+
+const int MAX_LIGHTS = 5;
+
+out vec4 FragColor;
+
+#include "shadowmap"
+
+const int SAMPLES = 64;
+
+void main()
+{
+	vec2 uv = gl_FragCoord.xy * u_iRes.xy; 
+		
+	//compute world position from pixel depth
+	float depth = texture( u_depth_texture, uv ).x;
+	vec4 screen_pos = vec4(uv.x*2.0-1.0, uv.y*2.0-1.0, depth*2.0-1.0, 1.0);
+	vec4 proj_worldpos = u_inverse_viewprojection * screen_pos;
+	vec3 worldpos = proj_worldpos.xyz / proj_worldpos.w;
+
+	//compute ray info
+	vec3 ray_start = u_camera_pos;
+	vec3 ray_dir = ( worldpos - ray_start );
+	float ray_length = length(ray_dir);
+	ray_dir /= ray_length;
+	ray_dir = normalize(ray_dir);
+	ray_length = min( 500.0, ray_length ); //max ray
+
+	float step_dist = ray_length / float(SAMPLES);
+
+	vec3 current_pos = ray_start;
+	vec3 ray_offset = ray_dir * step_dist;
+
+	//how visible is the point at the end of the ray
+	float transparency = 1.0;
+
+	vec3 irradiance = vec3(0.0);
+
+	for(int i = 0; i < SAMPLES; ++i)
+	{
+		float shadow = testShadowmap(current_pos);
+		float att = 1.0; //DIRECTIONAL
+		//compute illumination in this point
+		vec3 light = u_light_color * shadow;
+
+		//accumulate the amount of light
+		irradiance += light * transparency * (u_air_density * step_dist);
+
+		//reduce visibility
+		transparency -= u_air_density * step_dist;
+
+		//too dense, nothing can be seen behind
+		if( transparency < 0.001 )
+			break;
+
+		//advance to next position
+		current_pos.xyz += ray_offset;
+	}
+
+	FragColor = vec4(irradiance, 1.0 - transparency);
+}
+

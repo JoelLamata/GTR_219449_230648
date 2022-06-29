@@ -28,6 +28,7 @@ GTR::Renderer::Renderer() {
 	ssao_blur = NULL;
 	probes_texture = NULL;
 	irr_fbo = NULL;
+	volumetric_fbo = NULL;
 	reflection_fbo = new FBO();
 	reflection_fbo->create(Application::instance->window_width, Application::instance->window_height);
 	reflection_probe_fbo = new FBO();
@@ -44,6 +45,7 @@ GTR::Renderer::Renderer() {
 	show_motblur = false;
 	show_antial = false;
 	show_DoF = false;
+	show_volumetric = false;
 	random_points = generateSpherePoints(64, 1, true);
 	skybox = CubemapFromHDRE("data/panorama.hdre");
 	cloned_depth_texture = NULL;
@@ -52,6 +54,7 @@ GTR::Renderer::Renderer() {
 	postFX_textureA = NULL;
 	postFX_textureB = NULL;
 	blur = NULL;
+	directional = NULL;
 	deb_fac = 1.0;
 	minDist = 1.0;
 	maxDist = 300.0;
@@ -307,12 +310,13 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	int num_lights = lights.size();
 
-	for (int i = 0; i < num_lights; i++) {
-		LightEntity* light = lights[i];
-		if (light->light_type == DIRECTIONAL) {
-			uploadLightToShaderMultipass(light, shader);
-		}
-	}
+	//for (int i = 0; i < num_lights; i++) {
+	//	LightEntity* light = lights[i];
+	//	if (light->light_type == DIRECTIONAL) {
+	//		uploadLightToShaderMultipass(light, shader);
+	//	}
+	//}
+	uploadLightToShaderMultipass(directional, shader);
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
@@ -406,6 +410,25 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	applyfx(illumination_fbo->color_textures[0], gbuffers_fbo->depth_texture, camera);
 
+	if (show_volumetric) {
+		if (!volumetric_fbo) {
+			volumetric_fbo = new FBO();
+			volumetric_fbo->create(width, height, 1, GL_RGBA);
+		}
+
+		volumetric_fbo->bind();
+		shader = Shader::Get("volumetric");
+		shader->enable();
+		uploadLightToShaderDeferred(shader, inv_vp, width, height, camera);
+		uploadLightToShaderMultipass(directional, shader);
+		shader->setUniform("u_air_density", air_density * 0.001f);
+		quad->render(GL_TRIANGLES);
+		volumetric_fbo->unbind();
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		volumetric_fbo->color_textures[0]->toViewport();
+	}
+
 	if (show_gbuffers) {
 		glViewport(0, height * 0.5, width * 0.5, height * 0.5);
 		gbuffers_fbo->color_textures[0]->toViewport();
@@ -444,6 +467,8 @@ void Renderer::renderScene(GTR::Scene* scene, Camera* camera){
 		{
 			LightEntity* light = (GTR::LightEntity*)ent;
 			lights.push_back(light);
+			if (light->light_type == DIRECTIONAL)
+				directional = light;
 		}
 	}
 

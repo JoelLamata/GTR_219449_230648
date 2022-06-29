@@ -82,6 +82,7 @@ namespace GTR {
 		};
 
 		std::vector<GTR::LightEntity*> lights;
+		LightEntity* directional;
 		std::vector<RenderCall> render_calls;
 		std::vector<GTR::DecalEntity*> decals;
 		
@@ -96,6 +97,7 @@ namespace GTR {
 		FBO* reflection_fbo;
 		FBO* reflection_probe_fbo;
 		FBO* decal_fbo;
+		FBO* volumetric_fbo;
 		Texture* ssao_blur;
 		Texture* probes_texture;
 		Texture* postFX_textureA;
@@ -113,6 +115,7 @@ namespace GTR {
 		bool show_motblur;
 		bool show_antial;
 		bool show_DoF;
+		bool show_volumetric;
 		vector<Vector3> random_points;
 		Vector3 start_irr;
 		Vector3 end_irr;
@@ -128,6 +131,7 @@ namespace GTR {
 		float deb_fac;
 		float minDist;
 		float maxDist;
+		float air_density = 1;
 
 		Renderer();
 		//add here your functions
