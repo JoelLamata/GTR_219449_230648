@@ -322,6 +322,7 @@ void Application::onKeyDown( SDL_KeyboardEvent event )
 		case SDLK_m: renderer->multipass = !renderer->multipass; break;
 		case SDLK_z: renderer->show_probes = !renderer->show_probes; break;
 		case SDLK_x: renderer->show_probes_texture = !renderer->show_probes_texture; break;
+		case SDLK_b: renderer->show_reflection_probes = !renderer->show_reflection_probes; break;
 		case SDLK_SPACE: renderer->placeAndGenerateProbes(scene); break;
 		case SDLK_1: renderer->updateReflectionProbes(scene); break;
 		case SDLK_c: renderer->loadProbes(); break;

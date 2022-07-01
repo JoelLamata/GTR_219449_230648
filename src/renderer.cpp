@@ -36,6 +36,7 @@ GTR::Renderer::Renderer() {
 	show_gbuffers = false;
 	show_ssao = false;
 	show_probes = false;
+	show_reflection_probes = false;
 	show_probes_texture = false;
 	show_irradiance = false;
 	show_reflections = false;
@@ -152,7 +153,8 @@ void GTR::Renderer::renderForward(Camera* camera, GTR::Scene* scene) {
 	if(show_probes)
 		for(int i = 0; i < probes.size(); i++)
 			renderProbe(probes[i].pos, 2, probes[i].sh.coeffs[0].v);
-	
+	if (show_reflection_probes)
+		renderReflectionProbes(scene, camera);
 }
 
 void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
@@ -243,11 +245,6 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 	gbuffers_fbo->color_textures[1]->copyTo(decal_fbo->color_textures[1]);
 	gbuffers_fbo->color_textures[2]->copyTo(decal_fbo->color_textures[2]);
 
-	/*if (!cloned_depth_texture) {
-		cloned_depth_texture = new Texture();
-	}
-
-	gbuffers_fbo->depth_texture->copyTo(cloned_depth_texture);*/
 	decal_fbo->bind();
 	gbuffers_fbo->depth_texture->copyTo(NULL);
 	decal_fbo->unbind();
@@ -324,12 +321,6 @@ void GTR::Renderer::renderDeferred(Camera* camera, GTR::Scene* scene) {
 
 	int num_lights = lights.size();
 
-	//for (int i = 0; i < num_lights; i++) {
-	//	LightEntity* light = lights[i];
-	//	if (light->light_type == DIRECTIONAL) {
-	//		uploadLightToShaderMultipass(light, shader);
-	//	}
-	//}
 	uploadLightToShaderMultipass(directional, shader);
 
 	glDisable(GL_DEPTH_TEST);

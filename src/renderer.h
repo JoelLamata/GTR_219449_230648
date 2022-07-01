@@ -108,6 +108,7 @@ namespace GTR {
 		bool show_gbuffers;
 		bool show_ssao;
 		bool show_probes;
+		bool show_reflection_probes;
 		bool show_probes_texture;
 		bool show_irradiance;
 		bool show_reflections;
