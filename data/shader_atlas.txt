@@ -22,6 +22,10 @@ motionblur quad.vs motionblur.fs
 antialiasing quad.vs antialiasing.fs
 depthoffield quad.vs depthoffield.fs
 blurreddof quad.vs blurreddof.fs
+contrast quad.vs contrast.fs
+threshold quad.vs threshold.fs
+glow quad.vs glow.fs
+mix quad.vs mix.fs
 volumetric quad.vs volumetric.fs
 
 \shadowmap
@@ -425,8 +429,6 @@ void main()
 	else {
 		emissive_factor *= u_emissive_factor;
 	}
-	/*vec3 emissive_factor = texture(u_emissive_texture, v_uv).xyz;
-	emissive_factor *= u_emissive_factor;*/
 
 	vec3 L;
 	for (int i = 0; i < MAX_LIGHTS; ++i) {
@@ -1566,7 +1568,6 @@ void main() {
     FragColor = mix(focusColor, outOfFocusColor, blur);
 }
 
-
 \blurreddof.fs
 
 #version 330 core
@@ -1596,6 +1597,66 @@ void main() {
    FragColor = u_intensity * sum;
 }
 
+\mix.fs
+
+#version 330 core
+
+in vec2 v_uv;
+
+precision highp float;
+uniform sampler2D u_texture;
+uniform sampler2D u_textureB;
+uniform float u_intensity;
+
+out vec4 FragColor;
+
+void main() {
+   vec4 colorA = texture2D(u_texture, v_uv);
+   vec4 colorB = texture2D(u_textureB, v_uv);
+
+   FragColor = colorA * u_intensity + colorB;
+}
+
+\contrast.fs
+
+#version 330 core
+
+in vec2 v_uv;
+
+precision highp float;
+uniform sampler2D u_texture;
+uniform float u_contrast;
+
+layout(location = 0) out vec4 FragColor;
+
+void main() {
+   vec4 color = texture2D(u_texture, v_uv);
+   color.xyz = (color.xyz - vec3(0.5)) * u_contrast + vec3(0.5);
+
+   FragColor = color;
+}
+
+\threshold.fs
+
+#version 330 core
+
+in vec2 v_uv;
+
+precision highp float;
+uniform sampler2D u_texture;
+uniform float u_threshold;
+
+out vec4 FragColor;
+
+void main() {
+   vec4 color = texture2D(u_texture, v_uv);
+   if(color.x < u_threshold) color.x = 0.0;
+   if(color.y < u_threshold) color.y = 0.0;
+   if(color.z < u_threshold) color.z = 0.0;
+
+   FragColor = color;
+}
+
 \volumetric.fs
 
 #version 330 core
@@ -1609,16 +1670,19 @@ uniform mat4 u_viewprojection;
 uniform mat4 u_inverse_viewprojection;
 uniform vec2 u_iRes;
 
+const int MAX_LIGHTS = 5;
 uniform vec3 u_ambient_light;
-uniform vec3 u_light_color;
-uniform vec3 u_light_position;
-uniform float u_light_max_distance;
-uniform int u_light_type;
-uniform vec3 u_light_direction;
+uniform vec3 u_light_color[MAX_LIGHTS];
+uniform vec3 u_light_position[MAX_LIGHTS];
+uniform float u_light_max_distance[MAX_LIGHTS];
+uniform int u_num_lights;
+uniform int u_light_type[MAX_LIGHTS];
+uniform vec3 u_light_direction[MAX_LIGHTS];
+uniform float u_light_cosine_cutoff[MAX_LIGHTS];
+uniform float u_light_exp[MAX_LIGHTS];
 
 uniform float u_air_density;
 
-const int MAX_LIGHTS = 5;
 
 out vec4 FragColor;
 
@@ -1634,11 +1698,11 @@ void main()
 	float depth = texture( u_depth_texture, uv ).x;
 	vec4 screen_pos = vec4(uv.x*2.0-1.0, uv.y*2.0-1.0, depth*2.0-1.0, 1.0);
 	vec4 proj_worldpos = u_inverse_viewprojection * screen_pos;
-	vec3 worldpos = proj_worldpos.xyz / proj_worldpos.w;
+	vec3 v_world_position = proj_worldpos.xyz / proj_worldpos.w;
 
 	//compute ray info
 	vec3 ray_start = u_camera_pos;
-	vec3 ray_dir = ( worldpos - ray_start );
+	vec3 ray_dir = ( v_world_position - ray_start );
 	float ray_length = length(ray_dir);
 	ray_dir /= ray_length;
 	ray_dir = normalize(ray_dir);
@@ -1654,15 +1718,48 @@ void main()
 
 	vec3 irradiance = vec3(0.0);
 
-	for(int i = 0; i < SAMPLES; ++i)
+	for(int j = 0; j < SAMPLES; ++j)
 	{
-		float shadow = testShadowmap(current_pos);
-		float att = 1.0; //DIRECTIONAL
-		//compute illumination in this point
-		vec3 light = u_light_color * shadow;
+		for (int i = 0; i < MAX_LIGHTS; ++i) {
+			if (i < u_num_lights) {
+				if (u_light_cast_shadows[i] != 1)
+					continue;
+				vec3 L = u_light_position[i] - v_world_position;
+				float light_dist = length(L);
+				L /= light_dist;
+				float att_factor = u_light_max_distance[i] - light_dist;
 
-		//accumulate the amount of light
-		irradiance += light * transparency * (u_air_density * step_dist);
+				float spot_factor = 1.0;
+				if (u_light_type[i] == 1) { //SPOT
+					vec3 D = -normalize(u_light_direction[i]);
+					float spot_cosine = dot(D, L);
+					if(spot_cosine >= u_light_cosine_cutoff[i]){
+						spot_factor = pow(spot_cosine, u_light_exp[i]);
+					}
+					else {
+						spot_factor = 0.0;
+					}
+					att_factor *= spot_factor;
+				}
+				att_factor /= u_light_max_distance[i];
+
+				if (u_light_type[i] == 2) { //DIRECTIONAL
+					L = normalize(u_light_direction[i]);
+					att_factor = 1.0;
+				}
+
+				float shadow_factor = testShadowmapSingleLight(current_pos, i);
+
+				att_factor = max(att_factor, 0.0);
+				att_factor *= pow(att_factor, 2.0);
+	
+				//compute illumination in this point
+				vec3 light = u_light_color[i] * att_factor * shadow_factor;
+
+				//accumulate the amount of light
+				irradiance += light * transparency * (u_air_density * step_dist);
+			}
+		}
 
 		//reduce visibility
 		transparency -= u_air_density * step_dist;

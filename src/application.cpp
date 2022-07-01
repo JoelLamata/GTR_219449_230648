@@ -266,6 +266,10 @@ void Application::renderDebugGUI(void)
 	ImGui::SliderFloat("MinDistance", &renderer->minDist, 0.0, renderer->maxDist);
 	ImGui::SliderFloat("MaxDistance", &renderer->maxDist, 0.0, 900.0);
 	ImGui::SliderFloat("Factor", &renderer->deb_fac, 0.0, 5.0); 
+	ImGui::Checkbox("Show Gloom", &renderer->show_gloom); 
+	ImGui::SliderFloat("Intensity Factor", &renderer->intensity_factor, 0.0, 5.0);
+	ImGui::SliderFloat("Contrast", &renderer->contrast, 0.0, 2.0);
+	ImGui::SliderFloat("Threshold", &renderer->threshold, 0.0, 2.0);
 	ImGui::Checkbox("Show volumetric", &renderer->show_volumetric);
 	ImGui::SliderFloat("Air density", &renderer->air_density, 0.0, 10.0);
 

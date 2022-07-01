@@ -102,6 +102,8 @@ namespace GTR {
 		Texture* probes_texture;
 		Texture* postFX_textureA;
 		Texture* postFX_textureB;
+		Texture* postFX_textureC;
+		Texture* postFX_textureD;
 		bool multipass;
 		bool show_gbuffers;
 		bool show_ssao;
@@ -116,6 +118,7 @@ namespace GTR {
 		bool show_antial;
 		bool show_DoF;
 		bool show_volumetric;
+		bool show_gloom;
 		vector<Vector3> random_points;
 		Vector3 start_irr;
 		Vector3 end_irr;
@@ -131,7 +134,10 @@ namespace GTR {
 		float deb_fac;
 		float minDist;
 		float maxDist;
-		float air_density = 1;
+		float air_density;
+		float contrast;
+		float intensity_factor;
+		float threshold;
 
 		Renderer();
 		//add here your functions
